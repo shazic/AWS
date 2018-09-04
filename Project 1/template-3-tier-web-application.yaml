@@ -4,12 +4,41 @@
 Resources:
 
   WebServer:
-    Type: 'AWS::EC2::Instance'
     Description: Web-server tier EC2 instance
+    Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: !Ref WebServerImageId
       InstanceType: !Ref WebServerInstanceType
       KeyName: !Ref KeyName
+      SecurityGroups:
+      - !Ref WebServerSecurityGroup
+      - !Ref InternalSSHOnlySecurityGroup
+
+  WebServerSecurityGroup:
+    Description: Security Group allowing web traffic from across the globe.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow HTTP and HTTPS traffic from the open internet"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: '80'
+          IpProtocol: tcp
+          ToPort: '80'
+        - CidrIp: 0.0.0.0/0
+          FromPort: '443'
+          IpProtocol: tcp
+          ToPort: '443'
+          
+  InternalSSHOnlySecurityGroup:
+    Description: Security Group allowing users to securely access the instance.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH traffic"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: '22'
+          IpProtocol: tcp
+          ToPort: '22'
 
 ################################################################################
 # Define the Input Parameters

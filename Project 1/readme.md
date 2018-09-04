@@ -16,6 +16,6 @@ The CloudFormation Template would deploy a stack that would create the following
 ## Input Parameters
 
 ### Web Servers
-AMI Id
-Instance Type
-Key Pair name
+AMI Id  
+Instance Type  
+Key Pair name  
