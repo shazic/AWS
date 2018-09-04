@@ -1,0 +1,41 @@
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+
+  WebServer:
+    Type: 'AWS::EC2::Instance'
+    Description: Web-server tier EC2 instance
+    Properties:
+      ImageId: !Ref WebServerImageId
+      InstanceType: !Ref WebServerInstanceType
+      KeyName: !Ref KeyName
+
+################################################################################
+# Define the Input Parameters
+################################################################################
+Parameters:
+
+  KeyName:
+    Description: A Key Pair that could be used to access the EC2 instance.
+    Type: AWS::EC2::KeyPair::KeyName
+
+  WebServerImageId:
+    Description: AMI id to be used for launching the instance.
+    Type: String
+
+  WebServerInstanceType:
+    Description: Instance Type to be launched. Use t2.micro for free-tier.
+    Type: String
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    Default: t2.micro
+    ConstraintDescription: Must be a valid T2 type instance.
+
+
