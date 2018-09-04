@@ -3,6 +3,52 @@
 ################################################################################
 Resources:
 
+  VirtualPrivateCloud:
+    Description: The VPC inside which all resources would be created.
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.1.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: Application-VPC
+
+  InternetGateway:
+    Description: Internet Gateway for the VPC
+    Type: AWS::EC2::InternetGateway
+
+  PublicSubnet1:
+    Description: Public Subnet in Availability Zone 1
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      CidrBlock: 172.1.1.0/24
+      MapPublicIpOnLaunch: 'true'
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: Public-Subnet1          
+
+  PrivateSubnet1:
+    Description: Private Subnet in Availability Zone 1
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      CidrBlock: 172.1.2.0/24
+      MapPublicIpOnLaunch: 'false'
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""          
+      Tags:
+        - Key: Name
+          Value: Private-Subnet1
+
   WebServer:
     Description: Web-server tier EC2 instance
     Type: 'AWS::EC2::Instance'
@@ -10,15 +56,20 @@ Resources:
       ImageId: !Ref WebServerImageId
       InstanceType: !Ref WebServerInstanceType
       KeyName: !Ref KeyName
-      SecurityGroups:
+      SubnetId: !Ref PrivateSubnet1
+      SecurityGroupIds:
       - !Ref WebServerSecurityGroup
       - !Ref InternalSSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: WebServer-Instance
 
   WebServerSecurityGroup:
     Description: Security Group allowing web traffic from across the globe.
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Allow HTTP and HTTPS traffic from the open internet"
+      VpcId: !Ref VirtualPrivateCloud
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           FromPort: '80'
@@ -28,17 +79,24 @@ Resources:
           FromPort: '443'
           IpProtocol: tcp
           ToPort: '443'
+      Tags:
+        - Key: Name
+          Value: SG-WebServer
           
   InternalSSHOnlySecurityGroup:
     Description: Security Group allowing users to securely access the instance.
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Allow SSH traffic"
+      VpcId: !Ref VirtualPrivateCloud
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           FromPort: '22'
           IpProtocol: tcp
           ToPort: '22'
+      Tags:
+        - Key: Name
+          Value: SG-SSH-Only
 
 ################################################################################
 # Define the Input Parameters
