@@ -19,6 +19,13 @@ Resources:
     Description: Internet Gateway for the VPC
     Type: AWS::EC2::InternetGateway
 
+  AttachGateway:
+    Description: Attach Internet Gateway with the VPC.
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      InternetGatewayId: !Ref InternetGateway 
+
   PublicSubnet1:
     Description: Public Subnet in Availability Zone 1
     Type: AWS::EC2::Subnet
