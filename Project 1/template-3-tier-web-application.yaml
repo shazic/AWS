@@ -126,8 +126,7 @@ Resources:
       KeyName: !Ref KeyName
       SubnetId: !Ref PrivateSubnet1
       SecurityGroupIds:
-      - !Ref WebServerSecurityGroup
-      - !Ref InternalSSHOnlySecurityGroup
+        - !Ref InternalSSHOnlySecurityGroup
       Tags:
         - Key: Name
           Value: Application-Instance
@@ -165,6 +164,24 @@ Resources:
       Tags:
         - Key: Name
           Value: SG-SSH-Only
+
+  ApplicationLoadBalancer:
+    Description: Load Balancer for the application.
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AttachGateway
+    Properties:
+      Type: application
+      IpAddressType: ipv4
+      Name: awesomeapp
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref WebServerSecurityGroup
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: Application-Load-Balancer
 
 ################################################################################
 # Define the Input Parameters
