@@ -117,12 +117,12 @@ Resources:
       RouteTableId: !Ref InternetRouteTable
       SubnetId: !Ref PublicSubnet2
       
-  WebServer:
+  ApplicationServer:
     Description: Web-server tier EC2 instance
     Type: 'AWS::EC2::Instance'
     Properties:
-      ImageId: !Ref WebServerImageId
-      InstanceType: !Ref WebServerInstanceType
+      ImageId: !Ref ApplicationImageId
+      InstanceType: !Ref ApplicationInstanceType
       KeyName: !Ref KeyName
       SubnetId: !Ref PrivateSubnet1
       SecurityGroupIds:
@@ -130,7 +130,7 @@ Resources:
       - !Ref InternalSSHOnlySecurityGroup
       Tags:
         - Key: Name
-          Value: WebServer-Instance
+          Value: Application-Instance
 
   WebServerSecurityGroup:
     Description: Security Group allowing web traffic from across the globe.
@@ -175,11 +175,11 @@ Parameters:
     Description: A Key Pair that could be used to access the EC2 instance.
     Type: AWS::EC2::KeyPair::KeyName
 
-  WebServerImageId:
+  ApplicationImageId:
     Description: AMI id to be used for launching the instance.
     Type: String
 
-  WebServerInstanceType:
+  ApplicationInstanceType:
     Description: Instance Type to be launched. Use t2.micro for free-tier.
     Type: String
     AllowedValues:
