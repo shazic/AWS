@@ -26,6 +26,23 @@ Resources:
       VpcId: !Ref VirtualPrivateCloud
       InternetGatewayId: !Ref InternetGateway 
 
+  InternetRouteTable:
+    Description: A route table with a route to the Internet.
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      Tags:
+      - Key: Name
+        Value: Public-Route-Table
+
+  RouteToIGW:
+    Description: Defines a route to the internet in InternetRouteTable.
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref InternetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
   PublicSubnet1:
     Description: Public Subnet in Availability Zone 1
     Type: AWS::EC2::Subnet
@@ -41,6 +58,13 @@ Resources:
         - Key: Name
           Value: Public-Subnet1          
 
+  AssociatePublicRouteTableWithPublicSubnet1:
+    Description: Associate InternetRouteTable to PublicSubnet1, so that it becomes a public subnet.
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref InternetRouteTable
+      SubnetId: !Ref PublicSubnet1
+      
   PrivateSubnet1:
     Description: Private Subnet in Availability Zone 1
     Type: AWS::EC2::Subnet
