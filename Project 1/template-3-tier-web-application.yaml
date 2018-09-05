@@ -226,7 +226,7 @@ Resources:
         - Key: Name
           Value: Application-Instance-2
 
-  WebServerSecurityGroup:
+  WebSecurityGroup:
     Description: Security Group allowing web traffic from across the globe.
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -252,7 +252,7 @@ Resources:
       GroupDescription: "Allow traffic from the Load Balancer security group"
       VpcId: !Ref VirtualPrivateCloud
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref WebServerSecurityGroup
+        - SourceSecurityGroupId: !Ref WebSecurityGroup
           IpProtocol: tcp
           FromPort: 1
           ToPort: 65000
@@ -282,7 +282,7 @@ Resources:
       Name: awesomeapp
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref WebServerSecurityGroup
+        - !Ref WebSecurityGroup
       Subnets:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
