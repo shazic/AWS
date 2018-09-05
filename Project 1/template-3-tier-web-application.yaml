@@ -197,6 +197,29 @@ Resources:
         - Key: Name
           Value: Application-Load-Balancer
 
+  TargetGroupForApplicationLoadBalancer:
+    Description: Define the Target Group for Application Load Balancer.
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VirtualPrivateCloud
+      TargetType: instance
+      Targets:
+        - Id: !Ref ApplicationServer1
+        - Id: !Ref ApplicationServer2
+
+  ListenerForApplicationLoadBalancer:
+    Description: Create a listener for the Application Load Balancer.
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: 
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroupForApplicationLoadBalancer
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
 ################################################################################
 # Define the Input Parameters
 ################################################################################
