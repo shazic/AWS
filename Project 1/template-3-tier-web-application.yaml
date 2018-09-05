@@ -117,7 +117,7 @@ Resources:
       RouteTableId: !Ref InternetRouteTable
       SubnetId: !Ref PublicSubnet2
       
-  ApplicationServer:
+  ApplicationServer1:
     Description: Web-server tier EC2 instance
     Type: 'AWS::EC2::Instance'
     Properties:
@@ -129,7 +129,21 @@ Resources:
         - !Ref InternalSSHOnlySecurityGroup
       Tags:
         - Key: Name
-          Value: Application-Instance
+          Value: Application-Instance-1
+
+  ApplicationServer2:
+    Description: Web-server tier EC2 instance
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref ApplicationImageId
+      InstanceType: !Ref ApplicationInstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref InternalSSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Application-Instance-2
 
   WebServerSecurityGroup:
     Description: Security Group allowing web traffic from across the globe.
