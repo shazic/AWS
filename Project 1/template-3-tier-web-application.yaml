@@ -25,7 +25,7 @@ Resources:
           - 0
           - Fn::Cidr:
             - !Ref VPCCidrBlock
-            - 4
+            - 6
             - 8 
       MapPublicIpOnLaunch: 'true'
       AvailabilityZone:
@@ -46,7 +46,7 @@ Resources:
           - 1
           - Fn::Cidr:
             - !Ref VPCCidrBlock
-            - 4
+            - 6
             - 8 
       MapPublicIpOnLaunch: 'true'
       AvailabilityZone:
@@ -67,7 +67,7 @@ Resources:
           - 2
           - Fn::Cidr:
             - !Ref VPCCidrBlock
-            - 4
+            - 6
             - 8 
       MapPublicIpOnLaunch: 'false'
       AvailabilityZone:
@@ -88,7 +88,7 @@ Resources:
           - 3
           - Fn::Cidr:
             - !Ref VPCCidrBlock
-            - 4
+            - 6
             - 8 
       MapPublicIpOnLaunch: 'false'
       AvailabilityZone:
@@ -98,6 +98,61 @@ Resources:
       Tags:
         - Key: Name
           Value: Private-Subnet2
+
+  RDSSubnet1:
+    Description: Private Subnet in Availability Zone 1
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      CidrBlock: 
+        Fn::Select:
+          - 4
+          - Fn::Cidr:
+            - !Ref VPCCidrBlock
+            - 6
+            - 8 
+      MapPublicIpOnLaunch: 'false'
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""          
+      Tags:
+        - Key: Name
+          Value: RDS-Private-Subnet1
+
+  RDSSubnet2:
+    Description: Private Subnet in Availability Zone 1
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      CidrBlock: 
+        Fn::Select:
+          - 5
+          - Fn::Cidr:
+            - !Ref VPCCidrBlock
+            - 6
+            - 8 
+      MapPublicIpOnLaunch: 'false'
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""          
+      Tags:
+        - Key: Name
+          Value: RDS-Private-Subnet2
+
+  RDSSubnetGroup:
+    Description: DB Subnet group for RDS instances.
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instances
+      DBSubnetGroupName: application-db-subnet-group
+      SubnetIds:
+        - !Ref RDSSubnet1
+        - !Ref RDSSubnet2
+      Tags:
+        - Key: Name
+          Value: App-DB-Subnet-Group
 
   InternetGateway:
     Description: Internet Gateway for the VPC
