@@ -8,7 +8,7 @@ The CloudFormation Template would deploy a stack that would create the following
 1. VPC with public and private subnets.
 1. Internet Gateway for the VPC.
 1. Security Groups.
-1. Application Load Balancer in public subnet.
+1. Application Load Balancer listening to HTTP web traffic.
 1. EC2 instances for serving web traffic behind the Application Load Balancer.
 1. RDS instance as database server.
 1. A bastion host.
