@@ -151,6 +151,7 @@ Resources:
       SubnetId: !Ref PrivateSubnet1
       SecurityGroupIds:
         - !Ref InternalSSHOnlySecurityGroup
+        - !Ref ApplicationSecurityGroup
       Tags:
         - Key: Name
           Value: Application-Instance-1
@@ -165,6 +166,7 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       SecurityGroupIds:
         - !Ref InternalSSHOnlySecurityGroup
+        - !Ref ApplicationSecurityGroup
       Tags:
         - Key: Name
           Value: Application-Instance-2
@@ -187,6 +189,18 @@ Resources:
       Tags:
         - Key: Name
           Value: SG-WebServer
+
+  ApplicationSecurityGroup:
+    Description: This security group would allow ingress from the Web Security Group.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow traffic from the Load Balancer security group"
+      VpcId: !Ref VirtualPrivateCloud
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref WebServerSecurityGroup
+          IpProtocol: tcp
+          FromPort: 1
+          ToPort: 65000
           
   InternalSSHOnlySecurityGroup:
     Description: Security Group allowing users to securely access the instance.
