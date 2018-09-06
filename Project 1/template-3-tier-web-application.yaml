@@ -226,6 +226,26 @@ Resources:
         - Key: Name
           Value: Application-Instance-2
 
+  RDSInstance:
+    Description: RDS Instance.
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: !Ref DBStorageSize
+      StorageType: !Ref DBStorageType
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      DBName: !Ref DatabaseName
+      Engine: !Ref DatabaseEngine
+      MasterUsername: !Ref MasterUserName
+      MasterUserPassword: !Ref MasterUserPassword
+      MultiAZ: false
+      PubliclyAccessible: false
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: RDS-Instance
+
   WebSecurityGroup:
     Description: Security Group allowing web traffic from across the globe.
     Type: AWS::EC2::SecurityGroup
@@ -256,6 +276,18 @@ Resources:
           IpProtocol: tcp
           FromPort: 1
           ToPort: 65000
+
+  RDSSecurityGroup:
+    Description: This security group would allow ingress from the Application Security Group only.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow traffic from the Application security group"
+      VpcId: !Ref VirtualPrivateCloud
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+          IpProtocol: tcp
+          FromPort: 1
+          ToPort: 65000          
           
   InternalSSHOnlySecurityGroup:
     Description: Security Group allowing users to securely access the instance.
@@ -345,4 +377,75 @@ Parameters:
     Default: t2.micro
     ConstraintDescription: Must be a valid T2 type instance.
 
+  DBInstanceClass:
+    Description: Instance Type to be launched. Use db.t2.micro for free-tier.
+    Type: String
+    AllowedValues:
+    - db.t2.micro
+    - db.t2.small
+    - db.t2.medium
+    - db.t2.large
+    - db.t2.xlarge
+    - db.t2.2xlarge
+    Default: db.t2.micro
+    ConstraintDescription: Must be a valid db.t2 type instance.
 
+  DBStorageSize:
+    Description: Storage Size of the RDS instance.
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 16384
+    ConstraintDescription: Minimum size is 20 GB
+
+  DBStorageType:
+    Description: Storage Type for the RDS Instance.
+    Type: String
+    AllowedValues:
+    - standard
+    - gp2
+    - io1
+    Default: standard
+    ConstraintDescription: Standard, general purpose or IO type storage.
+
+  DatabaseName:
+    Description: The name of the database to be created on the RDS Instance.
+    Type: String
+    Default: testDB
+
+  DatabaseEngine:
+    Description: Database Engine.
+    Type: String
+    AllowedValues:
+    - aurora (for MySQL 5.6-compatible Aurora)
+    - aurora-mysql (for MySQL 5.7-compatible Aurora)
+    - aurora-postgresql
+    - mariadb
+    - mysql
+    - oracle-ee
+    - oracle-se2
+    - oracle-se1
+    - oracle-se
+    - postgres
+    - sqlserver-ee
+    - sqlserver-se
+    - sqlserver-ex
+    - sqlserver-web
+    Default: mysql
+    ConstraintDescription: Must be a valid DB engine supported by AWS.
+  
+  MasterUserName:
+    Description: Master Username. Must be between 1 - 16 characters.
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+    Default: dbadmin
+  
+  MasterUserPassword:
+    Description: Specify a password. Must be between 1 - 30 chars.
+    Type: String
+    NoEcho: 'true'
+    MinLength: 1
+    MaxLength: 30
+    AllowedPattern: ^[a-zA-Z0-9]*$
+    Default: Man1nTheM1dd1e
