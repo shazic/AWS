@@ -354,7 +354,7 @@ Resources:
     Properties:
       Type: application
       IpAddressType: ipv4
-      Name: awesomeapp
+      Name: !Ref ApplicationName
       Scheme: internet-facing
       SecurityGroups:
         - !Ref WebSecurityGroup
@@ -393,6 +393,13 @@ Resources:
 ################################################################################
 Parameters:
 
+  ApplicationName:
+    Description: A name for your web application. Should be between 1 - 16 characters.
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+    Default: awesomeapp
+    
   VPCCidrBlock:
     Description: CIDR Block for the VPC.
     Type: String
