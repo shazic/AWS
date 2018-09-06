@@ -399,7 +399,7 @@ Parameters:
     MinLength: 1
     MaxLength: 16
     Default: awesomeapp
-    
+
   VPCCidrBlock:
     Description: CIDR Block for the VPC.
     Type: String
@@ -534,14 +534,22 @@ Outputs:
     Value: 
       !Join [ ":", [ !GetAtt RDSInstance.Endpoint.Address, !GetAtt RDSInstance.Endpoint.Port ] ]
 
-  BastionHost1PublicIp:
+  PublicIpForBastionHost1:
     Description: Public IP Address of the Bastion Host 1
     Value: !GetAtt BastionHost1.PublicIp
 
-  BastionHost2PublicIp:
+  PublicIpForBastionHost2:
     Description: Public IP Address of the Bastion Host 2
     Value: !GetAtt BastionHost2.PublicIp
 
   ApplicationURL:
     Description: URL to access the application.
     Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  PrivateIpForApplicationServer1:
+    Description: Private IP Address of the Application Server 1
+    Value: !GetAtt ApplicationServer1.PrivateIp
+
+  PrivateIpForApplicationServer2:
+    Description: Private IP Address of the Application Server 2
+    Value: !GetAtt ApplicationServer2.PrivateIp
