@@ -296,13 +296,28 @@ Resources:
       GroupDescription: "Allow SSH traffic"
       VpcId: !Ref VirtualPrivateCloud
       SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref ExternalSSHOnlySecurityGroup
+          FromPort: '22'
+          IpProtocol: tcp
+          ToPort: '22'
+      Tags:
+        - Key: Name
+          Value: SG-Internal-SSH-Only
+
+  ExternalSSHOnlySecurityGroup:
+    Description: Security Group allowing users to securely access the instance.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH traffic"
+      VpcId: !Ref VirtualPrivateCloud
+      SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           FromPort: '22'
           IpProtocol: tcp
           ToPort: '22'
       Tags:
         - Key: Name
-          Value: SG-SSH-Only
+          Value: SG-SSH-Only          
 
   ApplicationLoadBalancer:
     Description: Load Balancer for the application.
