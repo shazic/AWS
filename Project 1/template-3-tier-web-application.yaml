@@ -533,4 +533,8 @@ Outputs:
 
   BastionHost2PublicIp:
     Description: Public IP Address of the Bastion Host 2
-    Value: !GetAtt BastionHost2.PublicIp    
+    Value: !GetAtt BastionHost2.PublicIp
+
+  ApplicationURL:
+    Description: URL to access the application.
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
