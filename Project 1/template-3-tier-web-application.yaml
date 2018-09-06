@@ -449,3 +449,13 @@ Parameters:
     MaxLength: 30
     AllowedPattern: ^[a-zA-Z0-9]*$
     Default: Man1nTheM1dd1e
+
+################################################################################
+# Define the Outputs
+################################################################################
+Outputs:
+
+  RDSEndpoint:
+    Description: Endpoint for the RDS instance
+    Value: 
+      !Join [ ":", [ !GetAtt RDSInstance.Endpoint.Address, !GetAtt RDSInstance.Endpoint.Port ] ]
