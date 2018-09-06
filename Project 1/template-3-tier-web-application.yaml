@@ -226,6 +226,20 @@ Resources:
         - Key: Name
           Value: Application-Instance-2
 
+  BastionHost1:
+    Description: Bastion Host 1
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref BastionHostImageId
+      InstanceType: !Ref BastionHostInstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref ExternalSSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Bastion-Host-1
+
   RDSInstance:
     Description: RDS Instance.
     Type: AWS::RDS::DBInstance
@@ -311,7 +325,7 @@ Resources:
       GroupDescription: "Allow SSH traffic"
       VpcId: !Ref VirtualPrivateCloud
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
+        - CidrIp: !Ref IPRangeAllowedToConnectToBastionHost
           FromPort: '22'
           IpProtocol: tcp
           ToPort: '22'
@@ -392,6 +406,30 @@ Parameters:
     Default: t2.micro
     ConstraintDescription: Must be a valid T2 type instance.
 
+  BastionHostImageId:
+    Description: AMI id to be used for the Bastion Host instance.
+    Type: String
+
+  BastionHostInstanceType:
+    Description: Bastion Host Instance Type. Use t2.micro for free-tier.
+    Type: String
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    Default: t2.micro
+    ConstraintDescription: Must be a valid T2 type instance.
+
+  IPRangeAllowedToConnectToBastionHost:
+    Description: IP CIDR block range that can SSH into the Bastion Host. Any other IP would not be allowed to SSH.
+    Type: String
+    Default: 0.0.0.0/0
+    ConstraintDescription: Must be a valid ip range.
+    
   DBInstanceClass:
     Description: Instance Type to be launched. Use db.t2.micro for free-tier.
     Type: String
