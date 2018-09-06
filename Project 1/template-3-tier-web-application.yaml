@@ -240,6 +240,20 @@ Resources:
         - Key: Name
           Value: Bastion-Host-1
 
+  BastionHost2:
+    Description: Bastion Host 2
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref BastionHostImageId
+      InstanceType: !Ref BastionHostInstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet2
+      SecurityGroupIds:
+        - !Ref ExternalSSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Bastion-Host-2
+
   RDSInstance:
     Description: RDS Instance.
     Type: AWS::RDS::DBInstance
@@ -516,3 +530,7 @@ Outputs:
   BastionHost1PublicIp:
     Description: Public IP Address of the Bastion Host 1
     Value: !GetAtt BastionHost1.PublicIp
+
+  BastionHost2PublicIp:
+    Description: Public IP Address of the Bastion Host 2
+    Value: !GetAtt BastionHost2.PublicIp    
