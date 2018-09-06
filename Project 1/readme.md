@@ -16,6 +16,9 @@ The CloudFormation Template would deploy a stack that would create the following
 
 ## Input Parameters
 
+### Application Name
+A name for your application.  
+
 ### VPC
 VPC CIDR block range  
 
@@ -49,3 +52,6 @@ The DNS Name of the Application Load Balancer.
 
 ### Database Endpoint
 The endpoint to connect to the database in the RDS instance.
+
+### Application Servers
+Private IP addresses of the application servers.
