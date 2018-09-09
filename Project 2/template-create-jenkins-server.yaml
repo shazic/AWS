@@ -1,0 +1,123 @@
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+
+  JenkinsServer:
+    Description: An ec2 instance with Jenkins installed.
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref JenkinsSecurityGroup
+        - !Ref SSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Jenkins-Server
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash -xe
+            cd ~ec2-user
+            yum -y install java-1.8.0 java-1.8.0-openjdk-devel git
+            alternatives --remove java /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java
+            wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+            rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+            yum install jenkins -y
+            sed -i '/JENKINS_ARGS/ s/""/"jenkins.install.runSetupWizard=false"/' /etc/sysconfig/jenkins
+            service jenkins start
+
+            sleep 30
+            cd ~ec2-user
+            wget http://localhost:8080/jnlpJars/jenkins-cli.jar
+            java -jar jenkins-cli.jar -s http://localhost:8080 install-plugin http://updates.jenkins-ci.org/latest/aws-codebuild.hpi script-security workflow-step-api cloudbees-folder antisamy-markup-formatter build-timeout credentials-binding timestamper ws-cleanup ant gradle workflow-aggregator github-organization-folder pipeline-stage-view git subversion ssh-slaves matrix-auth pam-auth ldap email-ext mailer --username admin --password `cat /var/lib/jenkins/secrets/initialAdminPassword` -restart
+
+            sed -i 's/JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true"/JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"/' /etc/sysconfig/jenkins
+            /etc/init.d/jenkins restart
+
+            cd ~jenkins
+            sudo -u jenkins git config --global credential.helper '!aws codecommit credential-helper $@'
+            sudo -u jenkins git config --global credential.useHttpPath true
+
+            export AWS_DEFAULT_REGION=${AWS::Region}
+
+  JenkinsSecurityGroup:
+    Description: Security Group allowing Jenkins traffic from specified IP address.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow traffic on port 8080 from the specified IP CIDR range"
+      SecurityGroupIngress:
+        - CidrIp: !Ref CidrRange
+          FromPort: '8080'
+          IpProtocol: tcp
+          ToPort: '8080'
+        - CidrIp: 0.0.0.0/0
+          FromPort: '8443'
+          IpProtocol: tcp
+          ToPort: '8443'
+      Tags:
+        - Key: Name
+          Value: sg-jenkins
+      
+  SSHOnlySecurityGroup:
+    Description: Security Group allowing users to securely access the instance.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH traffic"
+      SecurityGroupIngress:
+        - CidrIp: !Ref CidrRange
+          FromPort: '22'
+          IpProtocol: tcp
+          ToPort: '22'
+      Tags:
+        - Key: Name
+          Value: sg-ssh-only
+
+################################################################################
+# Define the Input Parameters.
+################################################################################
+Parameters:
+
+  ImageId:
+    Description: An ami for the Jenkins server.
+    Type: String
+
+  InstanceType:
+    Description: Instance size of the Jenkins server.
+    Type: String
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    Default: t2.micro
+    ConstraintDescription: Must be a valid T2 type instance.
+  
+  KeyName:
+    Description: A key-pair to connect to the Jenkins server.
+    Type: AWS::EC2::KeyPair::KeyName
+
+  CidrRange:
+    Description: An IP CIDR range from which the Jenkins server could be accessed through port 8080
+    Type: String
+    Default: 0.0.0.0/0
+    ConstraintDescription: Must be a valid ip range.
+
+################################################################################
+# Define the Outputs.
+################################################################################
+Outputs:
+
+  JenkinsURL:
+    Description: URL to access the Jenkins server
+    Value: 
+      Fn::Join:
+      - ":"
+      - [ !GetAtt JenkinsServer.PublicDnsName, 8080 ]
+      
+
