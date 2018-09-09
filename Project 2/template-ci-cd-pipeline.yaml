@@ -1,0 +1,223 @@
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+
+  CodeCommitRepository:
+    Description: A repository for the Source Code
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: !Ref RepositoryDescription
+      RepositoryName: !Ref RepoName
+
+  VirtualPrivateCloud:
+    Description: The VPC in which the Jenkins Server would be created.
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: Application-VPC
+
+  PublicSubnet:
+    Description: Public Subnet in for launching the Jenkins Server
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      CidrBlock: 
+        Fn::Select:
+          - 0
+          - Fn::Cidr:
+            - !Ref VPCCidrBlock
+            - 2
+            - 8 
+      MapPublicIpOnLaunch: 'true'
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: Public-subnet  
+
+  InternetGateway:
+    Description: Internet Gateway for the VPC
+    Type: AWS::EC2::InternetGateway
+
+  AttachInternetGateway:
+    Description: Attach Internet Gateway to the VPC
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      InternetGatewayId: !Ref InternetGateway
+
+  InternetRouteTable:
+    Description: A route table with a route to the Internet.
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VirtualPrivateCloud
+      Tags:
+      - Key: Name
+        Value: Public-Route-Table
+
+  RouteToIGW:
+    Description: Defines a route to the internet in InternetRouteTable.
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref InternetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  AssociatePublicRouteTableWithPublicSubnet:
+    Description: Associate InternetRouteTable to PublicSubnet, so that it becomes a public subnet.
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref InternetRouteTable
+      SubnetId: !Ref PublicSubnet      
+          
+  JenkinsServer:
+    Description: An ec2 instance with Jenkins installed.
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref JenkinsSecurityGroup
+        - !Ref SSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Jenkins-Server
+      
+  JenkinsSecurityGroup:
+    Description: Security Group allowing Jenkins traffic from specified IP address.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow traffic on port 8080 from the specified IP CIDR range"
+      VpcId: !Ref VirtualPrivateCloud
+      SecurityGroupIngress:
+        - CidrIp: !Ref CidrRange
+          FromPort: '8080'
+          IpProtocol: tcp
+          ToPort: '8080'
+        - CidrIp: 0.0.0.0/0
+          FromPort: '8443'
+          IpProtocol: tcp
+          ToPort: '8443'
+      Tags:
+        - Key: Name
+          Value: sg-jenkins
+      
+  SSHOnlySecurityGroup:
+    Description: Security Group allowing users to securely access the instance.
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH traffic"
+      VpcId: !Ref VirtualPrivateCloud
+      SecurityGroupIngress:
+        - CidrIp: !Ref CidrRange
+          FromPort: '22'
+          IpProtocol: tcp
+          ToPort: '22'
+      Tags:
+        - Key: Name
+          Value: sg-ssh-only
+
+################################################################################
+# Define the Input Parameters.
+################################################################################
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+
+      - Label:
+          default: "Jenkins Server"
+        Parameters:
+          - VPCCidrBlock
+          - ImageId
+          - InstanceType
+          - KeyName
+          - CidrRange
+
+      - Label:
+          default: "Code Commit"
+        Parameters:
+          - RepoName
+          - RepositoryDescription
+
+
+Parameters:
+
+  VPCCidrBlock:
+    Description: VPC CIDR block for the VPC to be created.
+    Type: String
+    Default: 172.99.0.0/16
+
+  ImageId:
+    Description: An ami for the Jenkins server.
+    Type: String
+
+  InstanceType:
+    Description: Instance size of the Jenkins server.
+    Type: String
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    Default: t2.micro
+    ConstraintDescription: Must be a valid T2 type instance.
+  
+  KeyName:
+    Description: A key-pair to connect to the Jenkins server.
+    Type: AWS::EC2::KeyPair::KeyName
+
+  CidrRange:
+    Description: An IP CIDR range from which the Jenkins server could be accessed through port 8080
+    Type: String
+    Default: 0.0.0.0/0
+    ConstraintDescription: Must be a valid ip range.
+
+  RepoName:
+    Description: Name of the source code repository
+    Type: String
+    MinLength: 3
+    MaxLength: 40
+    ConstraintDescription: Must be between 3 and 40 characters in length. 
+    
+  RepositoryDescription:
+    Description: A short description of the repository within 200 characters.
+    Type: String
+    MaxLength: 200
+    ConstraintDescription: Must be less than 200 characters in length. 
+
+################################################################################
+# Define the Outputs.
+################################################################################
+Outputs:
+
+  JenkinsURL:
+    Description: URL to access the Jenkins server
+    Value: 
+      Fn::Join: [ ":", [ !GetAtt JenkinsServer.PublicDnsName, 8080 ] ]
+      
+  JenkinPublicIP:
+    Description: Public IP address of the Jenkins Server. This can be used to connect over SSH.
+    Value: !GetAtt JenkinsServer.PublicIp
+
+  RepositoryCloneUrlHTTP:
+    Description: The URL to use for cloning the repository over HTTPS
+    Value: !GetAtt CodeCommitRepository.CloneUrlHttp
+
+  RepositoryCloneUrlSSH:
+    Description: The URL to use for cloning the repository over SSH
+    Value: !GetAtt CodeCommitRepository.CloneUrlSsh
+
