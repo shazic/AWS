@@ -77,6 +77,12 @@ Resources:
       - Key: Name
         Value: !Ref BuildProjectName
 
+  CodeDeployApplication:
+    Description: AWS CodeDeploy Application for deploying the build artifacts.
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Server
+
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
     Type: 'AWS::EC2::VPC'
