@@ -83,6 +83,14 @@ Resources:
     Properties:
       ComputePlatform: Server
 
+  TwentyFivePercentAtATime:
+    Description: Define a Deployment Configuration.
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties: 
+      MinimumHealthyHosts: 
+        Type: "FLEET_PERCENT"
+        Value: 75      
+
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
     Type: 'AWS::EC2::VPC'
