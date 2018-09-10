@@ -83,7 +83,7 @@ Resources:
     Properties:
       ComputePlatform: Server
 
-  TwentyFivePercentAtATime:
+  DeploymentConfiguration:
     Description: Define a Deployment Configuration that deploys to 25% of the fleet at a time.
     Type: AWS::CodeDeploy::DeploymentConfig
     Properties: 
@@ -91,6 +91,38 @@ Resources:
         Type: "FLEET_PERCENT"
         Value: 75      
 
+  CodeDeploymentGroup:
+    Description: Code deployment group that would deploy to a given tag
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref CodeDeployApplicationName
+      DeploymentConfigName: !Ref DeploymentConfiguration
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+      DeploymentStyle: 
+        DeploymentType: IN_PLACE
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+      Ec2TagFilters:
+        Type: KEY_AND_VALUE
+        Key: !Ref DeploymentKeyName
+        Value: !Ref DeploymentKeyValue
+
+  CodeDeployRole:
+    Description: Role with managed policy AWSCodeDeployRole 
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+        - 
+          Effect: "Allow"
+          Principal: 
+            Service: 
+              - "codedeploy.amazonaws.com"
+          Action: 
+            - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodeDeployRole 
+        
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
     Type: 'AWS::EC2::VPC'
@@ -326,6 +358,13 @@ Metadata:
           - ComputeType
           - BuildEnvironmentImage
 
+      - Label:
+          default: "AWS CodeDeploy Application"
+        Parameters:
+          - CodeDeployApplicationName
+          - DeploymentKeyName
+          - DeploymentKeyValue
+
 Parameters:
 
   VPCCidrBlock:
@@ -364,6 +403,7 @@ Parameters:
   RepoName:
     Description: Name of the source code repository
     Type: String
+    Default: DemoCodeCommitRepository
     MinLength: 3
     MaxLength: 40
     ConstraintDescription: Must be between 3 and 40 characters in length. 
@@ -377,6 +417,7 @@ Parameters:
   BuildProjectName:
     Description: Name of the build project
     Type: String
+    Default: DemoCodeBuildProject
     MinLength: 3
     MaxLength: 40
     ConstraintDescription: Must be between 3 and 40 characters in length. 
@@ -422,6 +463,22 @@ Parameters:
     - aws/codebuild/android-java-8:26.1.1
     - aws/codebuild/android-java-8:24.4.1
     ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
+
+  CodeDeployApplicationName:
+    Description: A name for the AWS CodeDeploy application
+    Type: String
+    Default: DemoCodeDeployApplication
+    MinLength: 3
+    MaxLength: 40
+    ConstraintDescription: Should be between 3 to 40 characters in length.
+
+  DeploymentKeyName:
+    Description: The Tag's keyname of the ec2 instances on which deployment would occur.
+    Type: String
+
+  DeploymentKeyValue:
+    Description: The Tag's key value of the ec2 instances on which deployment would occur.
+    Type: String
 
 ################################################################################
 # Define the Outputs.
