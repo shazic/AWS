@@ -95,16 +95,16 @@ Resources:
     Description: Code deployment group that would deploy to a given tag
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
-      ApplicationName: !Ref CodeDeployApplicationName
+      ApplicationName: !Ref CodeDeployApplication
       DeploymentConfigName: !Ref DeploymentConfiguration
       ServiceRoleArn: !GetAtt CodeDeployRole.Arn
       DeploymentStyle: 
         DeploymentType: IN_PLACE
         DeploymentOption: WITHOUT_TRAFFIC_CONTROL
       Ec2TagFilters:
-        Type: KEY_AND_VALUE
-        Key: !Ref DeploymentKeyName
-        Value: !Ref DeploymentKeyValue
+        - Type: KEY_AND_VALUE
+          Key: !Ref DeploymentKeyName
+          Value: !Ref DeploymentKeyValue
 
   CodeDeployRole:
     Description: Role with managed policy AWSCodeDeployRole 
@@ -361,7 +361,6 @@ Metadata:
       - Label:
           default: "AWS CodeDeploy Application"
         Parameters:
-          - CodeDeployApplicationName
           - DeploymentKeyName
           - DeploymentKeyValue
 
@@ -463,14 +462,6 @@ Parameters:
     - aws/codebuild/android-java-8:26.1.1
     - aws/codebuild/android-java-8:24.4.1
     ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
-
-  CodeDeployApplicationName:
-    Description: A name for the AWS CodeDeploy application
-    Type: String
-    Default: DemoCodeDeployApplication
-    MinLength: 3
-    MaxLength: 40
-    ConstraintDescription: Should be between 3 to 40 characters in length.
 
   DeploymentKeyName:
     Description: The Tag's keyname of the ec2 instances on which deployment would occur.
