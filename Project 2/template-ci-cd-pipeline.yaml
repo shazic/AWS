@@ -122,7 +122,164 @@ Resources:
             - "sts:AssumeRole"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole 
-        
+
+  CodePipelineArtifactStore:
+    Description: An S3 bucket to serve as an artifact store for the AWS CodePipeline
+    Type: AWS::S3::Bucket
+
+  PipelineRole:
+    Description: Role for AWS CodePipeline to do its job
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+        - 
+          Effect: "Allow"
+          Principal: 
+            Service: 
+              - "codepipeline.amazonaws.com"
+          Action: 
+            - "sts:AssumeRole"
+      Policies:
+        - 
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+                - s3:GetBucketVersioning
+                
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - arn:aws:s3:::codepipeline*
+                Action:
+                - s3:PutObject
+                
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - codecommit:CancelUploadArchive
+                - codecommit:GetBranch
+                - codecommit:GetCommit
+                - codecommit:GetUploadArchiveStatus
+                - codecommit:UploadArchive
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - codedeploy:CreateDeployment
+                - codedeploy:GetApplicationRevision
+                - codedeploy:GetDeployment
+                - codedeploy:GetDeploymentConfig
+                - codedeploy:RegisterApplicationRevision
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - ec2:*
+                - elasticloadbalancing:*
+                - autoscaling:*
+                - cloudwatch:*
+                - s3:*
+                - sns:*
+                - cloudformation:*
+                - rds:*
+                - sqs:*
+                - ecs:*
+                - iam:PassRole
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - cloudformation:CreateStack
+                - cloudformation:DeleteStack
+                - cloudformation:DescribeStacks
+                - cloudformation:UpdateStack
+                - cloudformation:CreateChangeSet
+                - cloudformation:DeleteChangeSet
+                - cloudformation:DescribeChangeSet
+                - cloudformation:ExecuteChangeSet
+                - cloudformation:SetStackPolicy
+                - cloudformation:ValidateTemplate
+                - iam:PassRole
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                Action:
+                - codebuild:BatchGetBuilds
+                - codebuild:StartBuild
+
+  CiCdPipeline:
+    Description: AWS CodePipeline
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineArtifactStore
+      RoleArn: !GetAtt PipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Name: SourceRepository  
+              Configuration:
+                RepositoryName: !GetAtt CodeCommitRepository.Name
+                BranchName: master
+              OutputArtifacts:
+                - Name: CodeCommitArtifacts
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - ActionTypeId:
+                Category: Build
+                Owner: Custom
+                Provider: !Ref JenkinsProvider
+                Version: 1
+              Name: Jenkins 
+              Configuration:
+                ProjectName: !Ref JenkinsProject
+              InputArtifacts:
+                - Name: CodeCommitArtifacts
+              OutputArtifacts:
+                - Name: BuildArtifacts
+              RunOrder: 2
+        - Name: Deploy
+          Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: 1
+              Name: Jenkins 
+              Configuration:
+                ApplicationName: !Ref CodeDeployApplication
+                DeploymentGroupName: !Ref CodeDeploymentGroup
+              InputArtifacts:
+                - Name: BuildArtifacts
+              RunOrder: 3
+
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
     Type: 'AWS::EC2::VPC'
@@ -339,6 +496,8 @@ Metadata:
           - InstanceType
           - KeyName
           - CidrRange
+          - JenkinsProject
+          - JenkinsProvider
 
       - Label:
           default: "AWS CodeCommit Repository"
@@ -398,6 +557,14 @@ Parameters:
     Type: String
     Default: 0.0.0.0/0
     ConstraintDescription: Must be a valid ip range.
+
+  JenkinsProject:
+    Description: Jenkins project name
+    Type: String
+
+  JenkinsProvider:
+    Description: The provider name in the Jenkins Project for the Build stage.
+    Type: String
 
   RepoName:
     Description: Name of the source code repository
