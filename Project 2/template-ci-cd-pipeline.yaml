@@ -67,8 +67,8 @@ Resources:
       Artifacts: 
         Type: CODEPIPELINE
       Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/java:openjdk-8
+        ComputeType: !Sub BUILD_GENERAL1_${ComputeType}
+        Image: !Ref BuildEnvironmentImage
         Type: LINUX_CONTAINER
       ServiceRole: !GetAtt ServiceRoleForCodeBuild.Arn
       Source: 
@@ -84,7 +84,7 @@ Resources:
       ComputePlatform: Server
 
   TwentyFivePercentAtATime:
-    Description: Define a Deployment Configuration.
+    Description: Define a Deployment Configuration that deploys to 25% of the fleet at a time.
     Type: AWS::CodeDeploy::DeploymentConfig
     Properties: 
       MinimumHealthyHosts: 
@@ -309,16 +309,22 @@ Metadata:
           - CidrRange
 
       - Label:
-          default: "Code Commit"
+          default: "AWS CodeCommit Repository"
         Parameters:
           - RepoName
           - RepositoryDescription
 
       - Label:
-          default: "Code Build"
+          default: "AWS CodeBuild Project"
         Parameters:
           - BuildProjectName
           - BuildProjectDescription
+
+      - Label:
+          default: "Build Environment"
+        Parameters:          
+          - ComputeType
+          - BuildEnvironmentImage
 
 Parameters:
 
@@ -380,6 +386,42 @@ Parameters:
     Type: String
     MaxLength: 200
     ConstraintDescription: Must be less than 200 characters in length. 
+
+  ComputeType:
+    Description: Compute environment for build
+    Type: String
+    Default: SMALL
+    AllowedValues:
+    - SMALL
+    - MEDIUM
+    - LARGE
+    ConstraintDescription: Compute environment small, medium or large
+
+  BuildEnvironmentImage:
+    Description: Select the run-time environment for the build. Currently, only Ubuntu Linux environment available for this selection.
+    Type: String
+    Default: aws/codebuild/java:openjdk-8
+    AllowedValues:
+    - aws/codebuild/java:openjdk-8
+    - aws/codebuild/java:openjdk-9
+    - aws/codebuild/nodejs:10.1.0
+    - aws/codebuild/nodejs:8.11.0
+    - aws/codebuild/nodejs:6.3.1
+    - aws/codebuild/php:5.6
+    - aws/codebuild/php:7.0
+    - aws/codebuild/python:3.6.5
+    - aws/codebuild/python:3.5.2
+    - aws/codebuild/python:3.4.5
+    - aws/codebuild/python:3.3.6
+    - aws/codebuild/python:2.7.12
+    - aws/codebuild/ruby:2.5.1
+    - aws/codebuild/ruby:2.3.1
+    - aws/codebuild/ruby:2.2.5
+    - aws/codebuild/golang:1.10
+    - aws/codebuild/docker:17.09.0
+    - aws/codebuild/android-java-8:26.1.1
+    - aws/codebuild/android-java-8:24.4.1
+    ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
 
 ################################################################################
 # Define the Outputs.
