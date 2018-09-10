@@ -145,7 +145,88 @@ Resources:
     Properties:
       RouteTableId: !Ref InternetRouteTable
       SubnetId: !Ref PublicSubnet      
-          
+  
+  JenkinsRole:
+    Description: Role with wo policies - 1. AWSCodePipelineCustomActionAccess, 2. IAM policy to manage builds from Jenkins through CodeBuild on the specified repository
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+        - 
+          Effect: "Allow"
+          Principal: 
+            Service: 
+              - "ec2.amazonaws.com"
+          Action: 
+            - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
+      Policies:
+        - 
+          # The following section defines an IAM policy to manage builds from Jenkins through CodeBuild on the specified repository 
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${BuildProjectName}
+                Action:
+                - codebuild:BatchGetBuilds
+                - codebuild:BatchGetProjects
+                - codebuild:StartBuild
+              
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProjectName}:*
+                  
+                Action:
+                - logs:GetLogEvents
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
+                  
+                Action:
+                - s3:GetObject
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${BuildProjectName}
+                  
+                Action:
+                - codecommit:BatchGetRepositories
+                - codecommit:Get*
+                - codecommit:List*
+                - codecommit:CreateRepository
+                - codecommit:CreateBranch
+                - codecommit:DeleteBranch
+                - codecommit:Put*
+                - codecommit:Test*
+                - codecommit:Update*
+                - codecommit:GitPull
+                - codecommit:GitPus
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - "*"
+                  
+                Action:
+                - sns:Publish
+
+  JenkinsInstanceProfile:
+    Description: Instance profile for the jenkins server
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+      - !Ref JenkinsRole
+
   JenkinsServer:
     Description: An ec2 instance with Jenkins installed.
     Type: AWS::EC2::Instance
@@ -154,6 +235,7 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       SubnetId: !Ref PublicSubnet
+      IamInstanceProfile: !Ref JenkinsInstanceProfile
       SecurityGroupIds:
         - !Ref JenkinsSecurityGroup
         - !Ref SSHOnlySecurityGroup
