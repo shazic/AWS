@@ -121,7 +121,7 @@ Resources:
           Action: 
             - "sts:AssumeRole"
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSCodeDeployRole 
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole 
         
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
