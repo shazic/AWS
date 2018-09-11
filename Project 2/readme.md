@@ -53,3 +53,13 @@ The CloudFormation Template would deploy the following resources:
 ### Jenkins Server
 - The public IP Address of the Jenkins server.  
 - The URL to access the Jenkins server.  
+- VPC id of the VPC in which the Jenkins Server was launched.
+- Subnet id of the subnet in which the Jenkins Server was launched.
+- Security groups associated with the Jenkins instance.
+
+### Pipeline
+- The bucket name that serves as the artifact store of the pipeline.
+  
+### Notifications
+- The arn of the SNS topic that the pipeline sends the state change notifications.
+- The CloudWatch Event Rule responsible for sending pipeline state change notifications to the SNS topic.
