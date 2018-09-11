@@ -241,7 +241,7 @@ Resources:
       Category: Build
       Provider: !Ref JenkinsProvider
       ConfigurationProperties:
-      - Name: !Ref JenkinsProject
+      - Name: ProjectName
         Queryable: true
         Key: true
         Required: true
