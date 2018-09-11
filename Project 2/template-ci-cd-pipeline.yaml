@@ -1,4 +1,11 @@
 ################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Creating a simple CI/CD Pipeline with AWS CodePipeline and Jenkins integration.
+
+################################################################################
 # Define the AWS Resources.
 ################################################################################
 Resources:

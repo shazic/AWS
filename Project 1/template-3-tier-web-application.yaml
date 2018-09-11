@@ -1,4 +1,11 @@
 ################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Creating a 3-tier web-server with RDS database.
+
+################################################################################
 # Define the AWS Resources.
 ################################################################################
 Resources:
