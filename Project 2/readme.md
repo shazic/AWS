@@ -19,6 +19,9 @@ The CloudFormation Template would deploy the following resources:
 - **PipelineName:** A name for your Pipeline 
 - **Version:** A version identifier for the Jenkins Build action
 
+### E-mail Subscription
+- **Email:** An e-mail id to which all Pipeline state change notifications would be sent. The user has to first confirm the subscription for receiving the e-mails. More users could be added later after the creation of the stack.  
+
 ### AWS CodeCommit Repository
 - **RepoName:** Name of the source code repository
 - **RepositoryDescription:** A short description of the repository
