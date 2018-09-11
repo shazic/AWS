@@ -515,6 +515,30 @@ Resources:
         - Key: Name
           Value: sg-ssh-only
 
+  SNSTopicForPipelineNotifications:
+    Description: SNS Topic for Pipeline Event notifications.
+    Type: AWS::SNS::Topic
+    
+  CloudWatchEventRule:
+    Description: CloudWatch Event Rule to catch the Pipeline events (status changes)    
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern: 
+        source: 
+        - "aws.codepipeline"
+        detail-type: 
+        - "CodePipeline Stage Execution State Change"
+        detail: 
+          state: 
+            - "STARTED"
+            - "SUCCEEDED"
+            - "FAILED"
+      State: "ENABLED"
+      Targets:
+        - Arn: !Ref SNSTopicForPipelineNotifications
+          Id: "SNSTargetForPipelineEvents"
+
+
 ################################################################################
 # Define the Input Parameters.
 ################################################################################
