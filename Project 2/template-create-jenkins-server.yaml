@@ -1,4 +1,11 @@
 ################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Creating an EC2 instance and installing Jenkins through UserData.
+
+################################################################################
 # Define the AWS Resources.
 ################################################################################
 Resources:
