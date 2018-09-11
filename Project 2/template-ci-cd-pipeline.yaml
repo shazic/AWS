@@ -227,6 +227,32 @@ Resources:
                 - codebuild:BatchGetBuilds
                 - codebuild:StartBuild
 
+  CustomBuildActionWithJenkins:
+    Description: Define a custom Action Type to build code with Jenkins.
+    Type: AWS::CodePipeline::CustomActionType
+    Properties:
+      Category: Build
+      Provider: !Ref JenkinsProvider
+      ConfigurationProperties:
+      - Name: !Ref JenkinsProject
+        Queryable: true
+        Key: true
+        Required: true
+        Secret: false
+        Type: String
+      InputArtifactDetails:
+        MinimumCount: 1
+        MaximumCount: 5
+      OutputArtifactDetails:
+        MinimumCount: 1
+        MaximumCount: 5
+      Settings:
+        EntityUrlTemplate: 
+          !Sub "http://${JenkinsServer.PublicDnsName}:8080/job/${JenkinsProject}"
+        ExecutionUrlTemplate:
+          !Sub "http://${JenkinsServer.PublicDnsName}:8080/job/${JenkinsProject}/lastSuccessfulBuild/{ExternalExecutionId}/"
+      Version: !Ref Version
+
   CiCdPipeline:
     Description: AWS CodePipeline
     Type: AWS::CodePipeline::Pipeline
@@ -257,29 +283,29 @@ Resources:
                 Category: Build
                 Owner: Custom
                 Provider: !Ref JenkinsProvider
-                Version: 1
-              Name: Jenkins 
+                Version: !Ref Version
+              Name: Build 
               Configuration:
                 ProjectName: !Ref JenkinsProject
               InputArtifacts:
                 - Name: CodeCommitArtifacts
               OutputArtifacts:
                 - Name: BuildArtifacts
-              RunOrder: 2
-        - Name: Deploy
+              RunOrder: 1
+        - Name: Staging
           Actions:
             - ActionTypeId:
                 Category: Deploy
                 Owner: AWS
                 Provider: CodeDeploy
                 Version: 1
-              Name: Jenkins 
+              Name: !Ref CodeDeploymentGroup 
               Configuration:
                 ApplicationName: !Ref CodeDeployApplication
                 DeploymentGroupName: !Ref CodeDeploymentGroup
               InputArtifacts:
                 - Name: BuildArtifacts
-              RunOrder: 3
+              RunOrder: 1
 
   VirtualPrivateCloud:
     Description: The VPC in which the Jenkins Server would be created.
@@ -493,6 +519,7 @@ Metadata:
           default: "Pipeline"
         Parameters:
           - PipelineName
+          - Version
 
       - Label:
           default: "Jenkins Server"
@@ -539,6 +566,15 @@ Parameters:
     MaxLength: 40
     ConstraintDescription: Must be between 3 and 40 characters in length. 
 
+  Version:
+    Description: A version identifier for the Jenkins Build action.
+    Type: String
+    Default: 1
+    MinLength: 1
+    MaxLength: 9
+    AllowedPattern: "[0-9A-Za-z_-]+"
+    ConstraintDescription: Must be between 1 and 9 characters in length. Allowed characters are numbers, letters, underscore and dash.
+
   VPCCidrBlock:
     Description: VPC CIDR block for the VPC to be created.
     Type: String
@@ -579,6 +615,10 @@ Parameters:
   JenkinsProvider:
     Description: The provider name in the Jenkins Project for the Build stage.
     Type: String
+    MinLength: 1
+    MaxLength: 25
+    AllowedPattern: "[0-9A-Za-z_-]+"
+    ConstraintDescription: Must be between 1 and 25 characters in length. Allowed characters are numbers, letters, underscore and dash.
 
   RepoName:
     Description: Name of the source code repository
@@ -673,4 +713,3 @@ Outputs:
   RepositoryCloneUrlSSH:
     Description: The URL to use for cloning the repository over SSH
     Value: !GetAtt CodeCommitRepository.CloneUrlSsh
-

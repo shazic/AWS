@@ -17,6 +17,7 @@ The CloudFormation Template would deploy the following resources:
 
 ### Application Name
 - **PipelineName:** A name for your Pipeline 
+- **Version:** A version identifier for the Jenkins Build action
 
 ### AWS CodeCommit Repository
 - **RepoName:** Name of the source code repository
