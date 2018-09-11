@@ -707,7 +707,7 @@ Outputs:
   JenkinsURL:
     Description: URL to access the Jenkins server
     Value: 
-      Fn::Join: [ ":", [ !GetAtt JenkinsServer.PublicDnsName, 8080 ] ]
+      !Sub "http://${JenkinsServer.PublicDnsName}:8080"
       
   JenkinPublicIP:
     Description: Public IP address of the Jenkins Server. This can be used to connect over SSH.
