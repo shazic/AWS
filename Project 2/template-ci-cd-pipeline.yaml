@@ -263,6 +263,7 @@ Resources:
   CiCdPipeline:
     Description: AWS CodePipeline
     Type: AWS::CodePipeline::Pipeline
+    DependsOn: CustomBuildActionWithJenkins
     Properties:
       Name: !Ref PipelineName
       ArtifactStore:
