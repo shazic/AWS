@@ -14,6 +14,8 @@ The CloudFormation Template would deploy a stack that would create the following
 1. RDS instance in a private subnet to serve as the database server.
 1. Two bastion hosts in 2 Availability Zones.
 
+### Architecture Diagram
+![3-tier web application](assets/3-tier-web-application.jpg?sanitize=true)
 ## Input Parameters
 
 ### Application Name
