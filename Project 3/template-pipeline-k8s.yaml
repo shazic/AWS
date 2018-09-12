@@ -1,0 +1,48 @@
+################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Creating a simple CI/CD Pipeline for a Kubernetes cluster with AWS CodePipeline.
+
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+
+  CodeRepository:
+    Description: Code repository for the pipeline.
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: !Ref CodeRepositoryDescription
+      RepositoryName: !Ref CodeRepositoryName
+
+################################################################################
+# Define the Input Parameters.
+################################################################################
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+
+      - Label:
+          default: "Code Repository"
+        Parameters:
+          - CodeRepositoryName
+          - CodeRepositoryDescription
+          
+Parameters:
+
+  CodeRepositoryName: 
+    Description: A name for the AWS CodeCommit repository
+    Type: String
+    MinLength: 3
+    MaxLength: 20
+    ConstraintDescription: Must be between 3 and 20 characters.
+
+  CodeRepositoryDescription: 
+    Description: A short description for the AWS CodeCommit repository
+    Type: String
+    MinLength: 3
+    MaxLength: 200
+    ConstraintDescription: Must be between 3 and 200 characters.    
