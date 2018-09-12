@@ -746,6 +746,10 @@ Parameters:
 ################################################################################
 Outputs:
 
+  PipelineUrl:
+    Description: URL to the Pipeline.
+    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${CiCdPipeline}
+
   JenkinsURL:
     Description: URL to access the Jenkins server
     Value: 
