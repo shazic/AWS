@@ -60,7 +60,7 @@ Resources:
               - 
                 Effect: "Allow"
                 Resource: 
-                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${BuildProjectName}
+                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeCommitRepository}
                   
                 Action:
                 - codecommit:GitPull
