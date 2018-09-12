@@ -13,6 +13,10 @@ The CloudFormation Template would deploy the following resources:
 1. A CloudWatch Events rule to send notifications to an SNS topic for each status change in the pipeline.
 1. An SNS topic for accepting the status change notification from the CodePipeline.
 
+
+### Architecture Diagram
+![3-tier web application](assets/ci-cd-pipeline.jpg?sanitize=true)
+
 ## Input Parameters
 
 ### Application Name
