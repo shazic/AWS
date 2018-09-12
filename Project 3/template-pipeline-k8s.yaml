@@ -17,6 +17,73 @@ Resources:
       RepositoryDescription: !Ref CodeRepositoryDescription
       RepositoryName: !Ref CodeRepositoryName
 
+  ServiceRoleForCodeBuild:
+    Description: CodeBuild would need this service role to do its job.
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+        - 
+          Effect: "Allow"
+          Principal: 
+            Service: 
+              - "codebuild.amazonaws.com"
+          Action: 
+            - "sts:AssumeRole"
+      Policies:
+        - 
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProjectName}
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProjectName}:*
+                Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
+                  
+                Action:
+                - s3:PutObject
+                - s3:GetObject
+                - s3:GetObjectVersion
+
+              - 
+                Effect: "Allow"
+                Resource: 
+                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeRepositoryName}
+                  
+                Action:
+                - codecommit:GitPull
+
+  CodeBuildProject:
+    Description: AWS CodeBuild project to build the Source Code
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref BuildProjectName
+      Description: !Ref BuildProjectDescription
+      Artifacts: 
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: !Sub BUILD_GENERAL1_${ComputeType}
+        Image: !Ref BuildEnvironmentImage
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt ServiceRoleForCodeBuild.Arn
+      Source: 
+        Type: CODEPIPELINE
+      Tags:
+      - Key: Name
+        Value: !Ref BuildProjectName
+
 ################################################################################
 # Define the Input Parameters.
 ################################################################################
@@ -30,7 +97,19 @@ Metadata:
         Parameters:
           - CodeRepositoryName
           - CodeRepositoryDescription
-          
+
+      - Label:
+          default: "Build Project Details"
+        Parameters:
+          - BuildProjectName
+          - BuildProjectDescription
+
+      - Label:
+          default: "Build Environment"
+        Parameters:          
+          - ComputeType
+          - BuildEnvironmentImage
+
 Parameters:
 
   CodeRepositoryName: 
@@ -46,3 +125,67 @@ Parameters:
     MinLength: 3
     MaxLength: 200
     ConstraintDescription: Must be between 3 and 200 characters.    
+
+  BuildProjectName:
+    Description: Name of the build project
+    Type: String
+    Default: DemoCodeBuildProject
+    MinLength: 3
+    MaxLength: 40
+    ConstraintDescription: Must be between 3 and 40 characters in length. 
+
+  BuildProjectDescription:
+    Description: A short description of the build project, within 200 characters.
+    Type: String
+    MaxLength: 200
+    ConstraintDescription: Must be less than 200 characters in length. 
+
+  ComputeType:
+    Description: Compute environment for build
+    Type: String
+    Default: SMALL
+    AllowedValues:
+    - SMALL
+    - MEDIUM
+    - LARGE
+    ConstraintDescription: Compute environment small, medium or large
+
+  BuildEnvironmentImage:
+    Description: Select the run-time environment for the build. Currently, only Ubuntu Linux environment available for this selection.
+    Type: String
+    Default: aws/codebuild/java:openjdk-8
+    AllowedValues:
+    - aws/codebuild/java:openjdk-8
+    - aws/codebuild/java:openjdk-9
+    - aws/codebuild/nodejs:10.1.0
+    - aws/codebuild/nodejs:8.11.0
+    - aws/codebuild/nodejs:6.3.1
+    - aws/codebuild/php:5.6
+    - aws/codebuild/php:7.0
+    - aws/codebuild/python:3.6.5
+    - aws/codebuild/python:3.5.2
+    - aws/codebuild/python:3.4.5
+    - aws/codebuild/python:3.3.6
+    - aws/codebuild/python:2.7.12
+    - aws/codebuild/ruby:2.5.1
+    - aws/codebuild/ruby:2.3.1
+    - aws/codebuild/ruby:2.2.5
+    - aws/codebuild/golang:1.10
+    - aws/codebuild/docker:17.09.0
+    - aws/codebuild/android-java-8:26.1.1
+    - aws/codebuild/android-java-8:24.4.1
+    ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
+
+################################################################################
+# Define the Outputs.
+################################################################################
+Outputs:
+
+  RepositoryCloneUrlHTTP:
+    Description: The URL to use for cloning the repository over HTTPS
+    Value: !GetAtt CodeRepository.CloneUrlHttp
+
+  RepositoryCloneUrlSSH:
+    Description: The URL to use for cloning the repository over SSH
+    Value: !GetAtt CodeRepository.CloneUrlSsh
+
