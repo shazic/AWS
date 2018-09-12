@@ -15,7 +15,7 @@ The CloudFormation Template would deploy the following resources:
 
 
 ### Architecture Diagram
-![3-tier web application](assets/ci-cd-pipeline.jpg?sanitize=true)
+![ci-cd-pipeline](assets/ci-cd-pipeline.jpg?sanitize=true)
 
 ## Input Parameters
 
