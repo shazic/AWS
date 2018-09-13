@@ -23,6 +23,55 @@ Resources:
       RepositoryDescription: !Ref CodeRepositoryDescription
       RepositoryName: !Ref CodeRepositoryName
 
+  CloudWatchEventsCanInvokePipelinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchEventsRolePolicy
+      Roles:
+        - !Ref CodePipelineEventsRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - codepipeline:*
+
+  CodePipelineEventsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  CloudWatchEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Role to Invoke Pipeline when CodeCommit state changes
+      EventPattern:
+        source:
+          - "aws.codecommit"
+        detail-type:
+          - "CodeCommit Repository State Change"
+        resources:
+          - !Ref CodeCommitRepo
+        detail:
+          referenceType:
+            - branch
+          referenceName:
+            - master
+      Targets:
+        - Arn: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}'
+          Id: Id123
+          RoleArn: !GetAtt CodePipelineEventsRole.Arn
+
   ServiceRoleForCodeBuild:
     Description: CodeBuild would need this service role to do its job.
     Type: AWS::IAM::Role
@@ -89,6 +138,7 @@ Resources:
       Tags:
       - Key: Name
         Value: !Ref BuildProjectName
+
 
 ################################################################################
 # Define the Input Parameters.
