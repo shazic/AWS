@@ -139,6 +139,75 @@ Resources:
       - Key: Name
         Value: !Ref BuildProjectName
 
+  LambdaCodePipelineExecutionPolicy:
+    Description: Policy for Lambda to be able todo it's function properly
+    Type: AWS::IAM::Policy
+    DependsOn: ServiceRoleForLambda
+    Properties:
+      PolicyName: LambdaRolePolicy
+      Roles:
+        - !Ref 'ServiceRoleForLambda'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ssm:Describe*
+              - ssm:Get*
+            Resource:
+              -  '*'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - logs:*
+            Resource:
+              - arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+              - codepipeline:PutJobSuccessResult
+              - codepipeline:PutJobFailureResult
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub arn:aws:s3:::${CodePipelineArtifactStore}/*
+              - !Sub arn:aws:s3:::${LambdaCodeLocation}/*
+
+  ServiceRoleForLambda:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  LambdaFunctionForK8sDeployment:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - LambdaCodePipelineExecutionPolicy
+    Properties:
+      Code:
+        S3Bucket: !Ref LambdaCodeLocation
+        S3Key: !Ref LambdaFunctionFilename
+      Role: !GetAtt 'ServiceRoleForLambda.Arn'
+      Description: Deploy on Kubernetes Cluster
+      Timeout: 20
+      Handler: kube-lambda.lambda_handler
+      Runtime: python3.6
+      MemorySize: 128
+
   CodePipelineArtifactStore:
     Description: An S3 bucket to serve as an artifact store for the AWS CodePipeline
     Type: AWS::S3::Bucket
@@ -247,6 +316,12 @@ Metadata:
           - ComputeType
           - BuildEnvironmentImage
 
+      - Label:
+          default: "Lambda Function for code deployment"
+        Parameters:
+          - LambdaCodeLocation
+          - LambdaFunctionFilename
+
 Parameters:
 
   CodeRepositoryName: 
@@ -332,6 +407,18 @@ Parameters:
     - aws/codebuild/android-java-8:24.4.1
     ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
 
+  LambdaCodeLocation:
+    Description: Provide the bucket name that stores the lambda function which would deploy the images to K8s.
+    Type: AWS::S3::Bucket
+    ConstraintDescription: Should be a valid bucket name.
+
+  LambdaFunctionFilename:
+    Description: The zipped package file in the bucket.
+    Type: String
+    Default: Archive.zip
+    MinLength: 3
+    MaxLength: 20
+    
 ################################################################################
 # Define the Outputs.
 ################################################################################
