@@ -61,7 +61,7 @@ Resources:
         detail-type:
           - "CodeCommit Repository State Change"
         resources:
-          - !Ref CodeCommitRepo
+          - !Ref CodeRepository
         detail:
           referenceType:
             - branch
@@ -139,6 +139,85 @@ Resources:
       - Key: Name
         Value: !Ref BuildProjectName
 
+  CodePipelineArtifactStore:
+    Description: An S3 bucket to serve as an artifact store for the AWS CodePipeline
+    Type: AWS::S3::Bucket
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt ServiceRoleForCodePipeline.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineArtifactStore
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: ApplicationSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              Configuration:
+                RepositoryName: !GetAtt CodeRepository.Name
+                BranchName: !Ref BranchName
+              OutputArtifacts:
+                - Name: CodeCommitArtifacts
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: CodeCommitArtifacts
+              OutputArtifacts:
+                - Name: BuildArtifacts
+              RunOrder: 1
+
+  ServiceRoleForCodePipeline:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "codepipeline.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineArtifactStore}/*
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+              - Resource: "*"
+                Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - cloudformation:*
+                  - iam:PassRole
+                  - codecommit:*
+              - Resource: "*"
+                Effect: Allow
+                Action:
+                  - lambda:*
 
 ################################################################################
 # Define the Input Parameters.
@@ -152,6 +231,7 @@ Metadata:
           default: "Code Repository"
         Parameters:
           - CodeRepositoryName
+          - BranchName
           - CodeRepositoryDescription
           - ContainerRepository
 
@@ -173,6 +253,14 @@ Parameters:
     Description: A name for the AWS CodeCommit repository
     Type: String
     Default: CodeRepositoryName
+    MinLength: 3
+    MaxLength: 20
+    ConstraintDescription: Must be between 3 and 20 characters.
+
+  BranchName:
+    Description: Branch name
+    Type: String
+    Default: master
     MinLength: 3
     MaxLength: 20
     ConstraintDescription: Must be between 3 and 20 characters.
