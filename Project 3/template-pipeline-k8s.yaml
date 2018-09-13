@@ -115,6 +115,7 @@ Parameters:
   CodeRepositoryName: 
     Description: A name for the AWS CodeCommit repository
     Type: String
+    Default: CodeRepositoryName
     MinLength: 3
     MaxLength: 20
     ConstraintDescription: Must be between 3 and 20 characters.
@@ -122,6 +123,7 @@ Parameters:
   CodeRepositoryDescription: 
     Description: A short description for the AWS CodeCommit repository
     Type: String
+    Default: "A short description for the repository"
     MinLength: 3
     MaxLength: 200
     ConstraintDescription: Must be between 3 and 200 characters.    
@@ -137,6 +139,7 @@ Parameters:
   BuildProjectDescription:
     Description: A short description of the build project, within 200 characters.
     Type: String
+    Default: "A short description for the build project"
     MaxLength: 200
     ConstraintDescription: Must be less than 200 characters in length. 
 
