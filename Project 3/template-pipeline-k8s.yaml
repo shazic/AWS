@@ -249,6 +249,19 @@ Resources:
               OutputArtifacts:
                 - Name: BuildArtifacts
               RunOrder: 1
+        - Name: Deploy
+          Actions:
+            - Name: Deployment
+              ActionTypeId:
+                Category: Invoke
+                Owner: AWS
+                Version: 1
+                Provider: Lambda
+              Configuration:
+                FunctionName: !Ref LambdaFunctionForK8sDeployment
+              InputArtifacts:
+                - Name: BuildArtifacts
+              RunOrder: 1
 
   ServiceRoleForCodePipeline:
     Type: AWS::IAM::Role
