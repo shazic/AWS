@@ -10,6 +10,12 @@ Description: Creating a simple CI/CD Pipeline for a Kubernetes cluster with AWS 
 ################################################################################
 Resources:
 
+  ECRRepository:
+    Description: ECR Repository for the docker images.
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref ContainerRepository
+
   CodeRepository:
     Description: Code repository for the pipeline.
     Type: AWS::CodeCommit::Repository
@@ -97,6 +103,7 @@ Metadata:
         Parameters:
           - CodeRepositoryName
           - CodeRepositoryDescription
+          - ContainerRepository
 
       - Label:
           default: "Build Project Details"
@@ -127,6 +134,14 @@ Parameters:
     MinLength: 3
     MaxLength: 200
     ConstraintDescription: Must be between 3 and 200 characters.    
+
+  ContainerRepository:
+    Description: A name for the ECR repository.
+    Type: String
+    Default: ECRRepository
+    MinLength: 3
+    MaxLength: 20
+    ConstraintDescription: Must be between 3 and 20 characters.
 
   BuildProjectName:
     Description: Name of the build project
