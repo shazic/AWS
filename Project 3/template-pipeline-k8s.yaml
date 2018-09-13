@@ -51,7 +51,7 @@ Resources:
               - sts:AssumeRole
       Path: /
 
-  CloudWatchEventsRule:
+  CloudWatchEventsRuleForCodeCommit:
     Type: AWS::Events::Rule
     Properties:
       Description: Role to Invoke Pipeline when CodeCommit state changes
@@ -301,6 +301,37 @@ Resources:
                 Action:
                   - lambda:*
 
+  SNSTopicForPipelineNotifications:
+    Description: SNS Topic for Pipeline Event notifications.
+    Type: AWS::SNS::Topic
+
+  SNSTopicSubscription:
+    Description: Create a subscription to the SNS topic. The user has to confirm the subscription.
+    Type: AWS::SNS::Subscription    
+    Properties:
+      TopicArn: !Ref SNSTopicForPipelineNotifications
+      Protocol: email
+      Endpoint: !Ref Email
+
+  CloudWatchEventsRuleForUserNotifications:
+    Description: CloudWatch Events Rule to catch the Pipeline events (status changes)    
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern: 
+        source: 
+        - "aws.codepipeline"
+        detail-type: 
+        - "CodePipeline Stage Execution State Change"
+        detail: 
+          state: 
+            - "STARTED"
+            - "SUCCEEDED"
+            - "FAILED"
+      State: "ENABLED"
+      Targets:
+        - Arn: !Ref SNSTopicForPipelineNotifications
+          Id: "SNSTargetForPipelineEvents"
+
 ################################################################################
 # Define the Input Parameters.
 ################################################################################
@@ -334,6 +365,11 @@ Metadata:
         Parameters:
           - LambdaCodeLocation
           - LambdaFunctionFilename
+
+      - Label:
+          default: "E-mail to subscribe for pipeline change events"
+        Parameters:
+          - Email          
 
 Parameters:
 
@@ -432,6 +468,10 @@ Parameters:
     MinLength: 3
     MaxLength: 20
     
+  Email:
+    Description: E-mail of the user who needs to be notified for pipeline state changes. The user has to confirm the subscription before receiving e-mails.
+    Type: String
+        
 ################################################################################
 # Define the Outputs.
 ################################################################################
@@ -445,3 +485,10 @@ Outputs:
     Description: The URL to use for cloning the repository over SSH
     Value: !GetAtt CodeRepository.CloneUrlSsh
 
+  SNSTopic:
+    Description: The arn of the SNS topic that the pipeline sends the state change notifications.
+    Value: !Ref SNSTopicForPipelineNotifications
+
+  EventRuleId:
+    Description: The CloudWatch Event Rule responsible for sending pipeline state change notifications to the SNS topic.
+    Value: !Ref CloudWatchEventsRuleForUserNotifications
