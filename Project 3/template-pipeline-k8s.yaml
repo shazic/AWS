@@ -400,7 +400,7 @@ Parameters:
   ContainerRepository:
     Description: A name for the ECR repository.
     Type: String
-    Default: ECRRepository
+    Default: ecr-repository
     MinLength: 3
     MaxLength: 20
     ConstraintDescription: Must be between 3 and 20 characters.
@@ -458,7 +458,7 @@ Parameters:
 
   LambdaCodeLocation:
     Description: Provide the bucket name that stores the lambda function which would deploy the images to K8s.
-    Type: AWS::S3::Bucket
+    Type: String
     ConstraintDescription: Should be a valid bucket name.
 
   LambdaFunctionFilename:
