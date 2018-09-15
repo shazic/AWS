@@ -76,49 +76,43 @@ Resources:
     Description: CodeBuild would need this service role to do its job.
     Type: AWS::IAM::Role
     Properties:
-      AssumeRolePolicyDocument: 
-        Version: "2012-10-17"
-        Statement: 
-        - 
-          Effect: "Allow"
-          Principal: 
-            Service: 
-              - "codebuild.amazonaws.com"
-          Action: 
-            - "sts:AssumeRole"
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "codebuild.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
       Policies:
-        - 
-          PolicyName: "root"
+        - PolicyName: root
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: 2012-10-17
             Statement:
-              - 
-                Effect: "Allow"
-                Resource: 
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProjectName}
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProjectName}:*
+              - Resource: "*"
+                Effect: Allow
                 Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-
-              - 
-                Effect: "Allow"
-                Resource: 
-                  - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
-                  
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - ecr:GetAuthorizationToken
+              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStore}/*
+                Effect: Allow
                 Action:
-                - s3:PutObject
-                - s3:GetObject
-                - s3:GetObjectVersion
-
-              - 
-                Effect: "Allow"
-                Resource: 
-                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeRepositoryName}
-                  
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ECRRepository}
+                Effect: Allow
                 Action:
-                - codecommit:GitPull
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
 
   CodeBuildProject:
     Description: AWS CodeBuild project to build the Source Code
@@ -126,15 +120,45 @@ Resources:
     Properties:
       Name: !Ref BuildProjectName
       Description: !Ref BuildProjectDescription
-      Artifacts: 
-        Type: CODEPIPELINE
+      Artifacts:
+        Location: !Ref CodePipelineArtifactStore
+        Type: "S3"
+      Source:
+        Location: !Sub ${CodePipelineArtifactStore}/source.zip
+        Type: "S3"
+        BuildSpec: |
+          version: 0.2
+          phases:
+            pre_build:
+              commands:
+                - $(aws ecr get-login)
+                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+            build:
+              commands:
+                - docker build --tag "${REPOSITORY_URI}:${TAG}" .
+            post_build:
+              commands:
+                - docker push "${REPOSITORY_URI}:${TAG}"
+                - printf '{"tag":"%s","repository-uri":"%s","template-bucket":"%s","deployment-name":"%s","cluster-endpoint":"%s"}' $TAG $REPOSITORY_URI $TEMPLATE_BUCKET $DEPLOYMENT_NAME $CLUSTER_ENDPOINT > build.json
+          artifacts:
+            files: build.json
       Environment:
-        ComputeType: !Sub BUILD_GENERAL1_${ComputeType}
-        Image: !Ref BuildEnvironmentImage
-        Type: LINUX_CONTAINER
-      ServiceRole: !GetAtt ServiceRoleForCodeBuild.Arn
-      Source: 
-        Type: CODEPIPELINE
+        ComputeType: "BUILD_GENERAL1_SMALL"
+        Image: "aws/codebuild/docker:1.12.1"
+        Type: "LINUX_CONTAINER"
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: REPOSITORY_URI
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepository}
+          - Name: TEMPLATE_BUCKET
+            Value: !Ref LambdaCodeLocation
+          - Name: DEPLOYMENT_NAME
+            Value: !Ref DeploymentName
+          - Name: CLUSTER_ENDPOINT
+            Value: !Ref ClusterEndpoint
+      Name: !Ref AWS::StackName
+      ServiceRole: !Ref ServiceRoleForCodeBuild
       Tags:
       - Key: Name
         Value: !Ref BuildProjectName
@@ -359,6 +383,8 @@ Metadata:
         Parameters:          
           - ComputeType
           - BuildEnvironmentImage
+          - DeploymentName
+          - ClusterEndpoint
 
       - Label:
           default: "Lambda Function for code deployment"
@@ -455,6 +481,15 @@ Parameters:
     - aws/codebuild/android-java-8:26.1.1
     - aws/codebuild/android-java-8:24.4.1
     ConstraintDescription: Currently, only Ubuntu Linux environment available for this selection. 
+
+  DeploymentName:
+    Description: A name for the Kubernetes deployment
+    Type: String
+    Default: k8s-deployment
+
+  ClusterEndpoint:
+    Description: Cluster endpoint for the Kubernetes Cluster.
+    Type: String
 
   LambdaCodeLocation:
     Description: Provide the bucket name that stores the lambda function which would deploy the images to K8s.
