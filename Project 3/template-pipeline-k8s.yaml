@@ -337,6 +337,23 @@ Resources:
       Protocol: email
       Endpoint: !Ref Email
 
+  SNSTopicPolicyForCWEvents:
+    Description: SNS topic policy to let CloudWatch Events send notifications to the topic.
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicPolicyForCWE
+        Version: '2012-10-17'
+        Statement:
+        - Sid: TrustCWEToPublishEventsToMyTopic
+          Effect: Allow
+          Principal:
+            Service: "events.amazonaws.com"
+          Action: sns:Publish
+          Resource: !Sub "${SNSTopicForPipelineNotifications}"
+      Topics:
+      - !Ref SNSTopicForPipelineNotifications
+
   CloudWatchEventsRuleForUserNotifications:
     Description: CloudWatch Events Rule to catch the Pipeline events (status changes)    
     Type: AWS::Events::Rule
