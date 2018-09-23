@@ -1,0 +1,302 @@
+################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Docker EE Architecture on AWS.
+
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+################################################################################
+# Define the Parameters and Metadata.
+################################################################################
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Swarm Size
+      Parameters:
+      - ManagerSize
+      - ClusterSize
+    - Label:
+        default: Swarm Properties
+      Parameters:
+      - KeyName
+      - RemoteSSH
+      - EnableSystemPrune
+      - EnableCloudWatchLogs
+      - EnableCloudStorEfs
+    - Label:
+        default: Swarm Manager Properties
+      Parameters:
+      - ManagerInstanceType
+      - ManagerDiskSize
+      - ManagerDiskType
+    - Label:
+        default: Swarm Worker Properties
+      Parameters:
+      - InstanceType
+      - WorkerDiskSize
+      - WorkerDiskType
+    - Label:
+        default: HTTP Proxy
+      Parameters:
+      - HTTPProxy
+      - HTTPSProxy
+      - NoProxy
+    - Label:
+        default: Docker EE Properties
+      Parameters:
+      - DDCUsernameSet
+      - DDCPasswordSet
+      - License
+    ParameterLabels:
+      ClusterSize:
+        default: Number of Swarm worker nodes
+      DDCPasswordSet:
+        default: Enter your Docker EE password
+      DDCUsernameSet:
+        default: Enter the Username you want to use with Docker EE
+      EnableCloudStorEfs:
+        default: Create EFS prerequisites for CloudStor
+      EnableCloudWatchLogs:
+        default: Use CloudWatch for container logging
+      EnableSystemPrune:
+        default: Enable daily resource cleanup
+      HTTPProxy:
+        default: Value for HTTP_PROXY environment variable
+      HTTPSProxy:
+        default: Value for HTTPS_PROXY environment variable
+      InstanceType:
+        default: Agent worker instance type
+      KeyName:
+        default: Which SSH key to use
+      License:
+        default: Enter your Docker EE License
+      ManagerDiskSize:
+        default: Manager ephemeral storage volume size
+      ManagerDiskType:
+        default: Manager ephemeral storage volume type
+      ManagerInstanceType:
+        default: Swarm manager instance type
+      ManagerSize:
+        default: Number of Swarm managers
+      NoProxy:
+        default: Value for NO_PROXY environment variable
+      RemoteSSH:
+        default: Which IPs are allowed to SSH
+      WorkerDiskSize:
+        default: Worker ephemeral storage volume size
+      WorkerDiskType:
+        default: Worker ephemeral storage volume type
+
+Parameters:
+  ClusterSize:
+    Default: '5'
+    Description: Number of worker nodes in the Swarm (0-1000).
+    MaxValue: '1000'
+    MinValue: '0'
+    Type: Number
+  DDCPasswordSet:
+    ConstraintDescription: must be at least 8 characters
+    Description: Docker EE Password.
+    MaxLength: '40'
+    MinLength: '8'
+    NoEcho: true
+    Type: String
+  DDCUsernameSet:
+    ConstraintDescription: Please enter the username you want to use for Docker EE.
+    Default: admin
+    Description: Docker EE Username.
+    Type: String
+  EnableCloudStorEfs:
+    AllowedValues:
+    - 'no'
+    - 'yes'
+    Default: 'no'
+    Description: Create CloudStor EFS mount targets.
+    Type: String
+  EnableCloudWatchLogs:
+    AllowedValues:
+    - 'no'
+    - 'yes'
+    Default: 'no'
+    Description: Send all Container logs to CloudWatch.
+    Type: String
+  EnableSystemPrune:
+    AllowedValues:
+    - 'no'
+    - 'yes'
+    Default: 'no'
+    Description: Cleans up unused images, containers, networks and volumes.
+    Type: String
+  HTTPProxy:
+    AllowedPattern: "^\\S*$"
+    ConstraintDescription: HTTP_PROXY environment variable setting.
+    Description: Value for HTTP_PROXY environment variable.
+    Type: String
+  HTTPSProxy:
+    AllowedPattern: "^\\S*$"
+    ConstraintDescription: HTTPS_PROXY environment variable setting.
+    Description: Value for HTTPS_PROXY environment variable.
+    Type: String
+  InstanceType:
+    AllowedValues:
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+    - m4.16xlarge
+    - m3.medium
+    - m3.large
+    - m3.xlarge
+    - m3.2xlarge
+    - c4.large
+    - c4.xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    - c3.large
+    - c3.xlarge
+    - c3.2xlarge
+    - c3.4xlarge
+    - c3.8xlarge
+    - r3.large
+    - r3.xlarge
+    - r3.2xlarge
+    - r3.4xlarge
+    - r3.8xlarge
+    - r4.large
+    - r4.xlarge
+    - r4.2xlarge
+    - r4.4xlarge
+    - r4.8xlarge
+    - r4.16xlarge
+    - i3.large
+    - i3.xlarge
+    - i3.2xlarge
+    - i3.4xlarge
+    - i3.8xlarge
+    - i3.16xlarge
+    - cc2.8xlarge
+    - cr1.8xlarge
+    - d2.2xlarge
+    - d2.4xlarge
+    - d2.8xlarge
+    - d2.xlarge
+    - g2.2xlarge
+    - hi1.4xlarge
+    - hs1.8xlarge
+    ConstraintDescription: Must be a valid EC2 HVM instance type.
+    Default: t2.small
+    Description: EC2 HVM instance type (t2.micro, m3.medium, etc).
+    Type: String
+  KeyName:
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances.
+    Type: AWS::EC2::KeyPair::KeyName
+  License:
+    Description: Docker EE License in JSON format or URL to download it. Get Trial
+      License here https://store.docker.com/editions/enterprise/docker-ee-trial.
+    NoEcho: true
+    Type: String
+  ManagerDiskSize:
+    Default: '20'
+    Description: Size of Manager's ephemeral storage volume in GiB.
+    MaxValue: '1024'
+    MinValue: '20'
+    Type: Number
+  ManagerDiskType:
+    AllowedValues:
+    - standard
+    - gp2
+    Default: gp2
+    Description: Manager ephemeral storage volume type.
+    Type: String
+  ManagerInstanceType:
+    AllowedValues:
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+    - m4.16xlarge
+    - m3.medium
+    - m3.large
+    - m3.xlarge
+    - m3.2xlarge
+    - c4.large
+    - c4.xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    - c3.large
+    - c3.xlarge
+    - c3.2xlarge
+    - c3.4xlarge
+    - c3.8xlarge
+    - r3.large
+    - r3.xlarge
+    - r3.2xlarge
+    - r3.4xlarge
+    - r3.8xlarge
+    - r4.large
+    - r4.xlarge
+    - r4.2xlarge
+    - r4.4xlarge
+    - r4.8xlarge
+    - r4.16xlarge
+    - i3.large
+    - i3.xlarge
+    - i3.2xlarge
+    - i3.4xlarge
+    - i3.8xlarge
+    - i3.16xlarge
+    ConstraintDescription: Must be a valid EC2 HVM instance type.
+    Default: m4.large
+    Description: EC2 HVM instance type (t2.micro, m3.medium, etc).
+    Type: String
+  ManagerSize:
+    AllowedValues:
+    - '3'
+    - '5'
+    Default: '3'
+    Description: Number of Swarm manager nodes (3, 5).
+    Type: Number
+  NoProxy:
+    AllowedPattern: "^\\S*$"
+    ConstraintDescription: NO_PROXY environment variable setting.
+    Description: Value for NO_PROXY environment variable.
+    Type: String
+  RemoteSSH:
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+    Description: The value 0.0.0.0/0 will allow SSH from anywhere.
+    MaxLength: '18'
+    MinLength: '9'
+    Type: String
+  WorkerDiskSize:
+    Default: '20'
+    Description: Size of Workers's ephemeral storage volume in GiB.
+    MaxValue: '1024'
+    MinValue: '20'
+    Type: Number
+  WorkerDiskType:
+    AllowedValues:
+    - standard
+    - gp2
+    Default: standard
+    Description: Worker ephemeral storage volume type.
+    Type: String
+
+################################################################################
+# Define the Outputs.
+################################################################################
+Outputs:
