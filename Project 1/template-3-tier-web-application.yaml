@@ -184,7 +184,7 @@ Resources:
   RouteToIGW:
     Description: Defines a route to the internet in InternetRouteTable.
     Type: AWS::EC2::Route
-    DependsOn: AttachInternetGateway
+    DependsOn: AttachGateway
     Properties:
       RouteTableId: !Ref InternetRouteTable
       DestinationCidrBlock: 0.0.0.0/0
