@@ -1,0 +1,37 @@
+---
+################################################################################
+# Define the CloudFormation Template Version and a short description.
+################################################################################
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: 'Template to create an SNS topic that can send messages to 2 separate SQS queues.'
+
+################################################################################
+# Define the AWS Resources.
+################################################################################
+Resources:
+
+################################################################################
+# Define the Input Parameters.
+################################################################################
+Parameters:
+  TopicPublisherIAMPassword:
+    NoEcho: 'true'
+    Type: String
+    Description: Password for the IAM user TopicPublisherIAMUser
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: Must contain only alphanumeric characters.
+  QueueConsumerPassword:
+    NoEcho: 'true'
+    Type: String
+    Description: Password for the IAM user QueueConsumer
+    MinLength: '1'
+    MaxLength: '41'
+    ConstraintDescription: Password must be between 1 and 41 characters.
+
+################################################################################
+# Define the Outputs.
+################################################################################
+Outputs:
