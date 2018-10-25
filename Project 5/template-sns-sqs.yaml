@@ -10,6 +10,110 @@ Description: 'Template to create an SNS topic that can send messages to 2 separa
 # Define the AWS Resources.
 ################################################################################
 Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+      - Endpoint:
+          Fn::GetAtt:
+          - Queue1
+          - Arn
+        Protocol: sqs
+      - Endpoint:
+          Fn::GetAtt:
+          - Queue2
+          - Arn
+        Protocol: sqs
+  Queue1:
+    Type: AWS::SQS::Queue
+  Queue2:
+    Type: AWS::SQS::Queue
+  TopicPublisherIAMUser:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password:
+          Ref: TopicPublisherIAMPassword
+  TopicPublisherIAMUserKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName:
+        Ref: TopicPublisherIAMUser
+  PublishToTopicGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      Policies:
+      - PolicyName: MyTopicGroupPolicy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - sns:Publish
+            Resource:
+              Ref: SNSTopic
+  AddUserToPublishToTopicGroup:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName:
+        Ref: PublishToTopicGroup
+      Users:
+      - Ref: TopicPublisherIAMUser
+  QueueConsumer:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password:
+          Ref: QueueConsumerPassword
+  QueueConsumerKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName:
+        Ref: QueueConsumer
+  MessageQueueGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      Policies:
+      - PolicyName: MyQueueGroupPolicy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:DeleteMessage
+            - sqs:ReceiveMessage
+            Resource:
+            - Fn::GetAtt:
+              - Queue1
+              - Arn
+            - Fn::GetAtt:
+              - Queue2
+              - Arn
+  AddUserToMyQueueGroup:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName:
+        Ref: MessageQueueGroup
+      Users:
+      - Ref: QueueConsumer
+  MyQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Id: MyQueuePolicy
+        Statement:
+        - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic
+          Effect: Allow
+          Principal:
+            AWS: "*"
+          Action:
+          - sqs:SendMessage
+          Resource: "*"
+          Condition:
+            ArnEquals:
+              aws:SourceArn:
+                Ref: SNSTopic
+      Queues:
+      - Ref: Queue1
+      - Ref: Queue2
 
 ################################################################################
 # Define the Input Parameters.
@@ -35,3 +139,59 @@ Parameters:
 # Define the Outputs.
 ################################################################################
 Outputs:
+  SNSTopicTopicARN:
+    Value:
+      Ref: SNSTopic
+    Description: Topic ARN of newly created SNS topic
+  Queue1Info:
+    Value:
+      Fn::Join:
+      - " "
+      - - 'ARN:'
+        - Fn::GetAtt:
+          - Queue1
+          - Arn
+        - 'URL:'
+        - Ref: Queue1
+    Description: Queue1 details
+  Queue2Info:
+    Value:
+      Fn::Join:
+      - " "
+      - - 'ARN:'
+        - Fn::GetAtt:
+          - Queue2
+          - Arn
+        - 'URL:'
+        - Ref: Queue2
+    Description: Queue2 details
+  TopicPublisherIAMUserInfo:
+    Description: Information for publisher
+    Value:
+      Fn::Join:
+      - " "
+      - - 'ARN:'
+        - Fn::GetAtt:
+          - TopicPublisherIAMUser
+          - Arn
+        - 'Access Key:'
+        - Ref: TopicPublisherIAMUserKey
+        - 'Secret Key:'
+        - Fn::GetAtt:
+          - TopicPublisherIAMUserKey
+          - SecretAccessKey
+  QueueConsumerInfo:
+    Description: Information for consumer
+    Value:
+      Fn::Join:
+      - " "
+      - - 'ARN:'
+        - Fn::GetAtt:
+          - QueueConsumer
+          - Arn
+        - 'Access Key:'
+        - Ref: QueueConsumerKey
+        - 'Secret Key:'
+        - Fn::GetAtt:
+          - QueueConsumerKey
+          - SecretAccessKey
