@@ -8,6 +8,7 @@ provider "aws" {
 
 module "network" {
   source = "./networking"
+  project_name = "${var.project_name}"
   cidr_block = "${var.vpc_cidr_block}"
   no_of_azs = "${var.no_of_azs}"
   public_subnet_cidr_blocks = "${var.public_subnet_cidr_blocks}"

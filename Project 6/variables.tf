@@ -7,6 +7,10 @@ variable "region" {
     default = "us-east-1"
 }
 
+variable "project_name" {
+    default = "HA-FT-App"
+}
+
 variable "vpc_cidr_block" {
     description = "CIDR block for the main VPC"
     default = "10.100.0.0/16"
