@@ -14,4 +14,5 @@ module "network" {
   private_subnet_cidr_blocks = "${var.private_subnet_cidr_blocks}"
   db_subnet_cidr_blocks = "${var.db_subnet_cidr_blocks}"
   allowed_ips = "${var.allowed_ips}"
+  db_port = "${var.db_port}"
 }

@@ -35,3 +35,7 @@ variable "allowed_ips" {
     type = "list"
 }
 
+variable "db_port" {
+    description = "Port on which the database is listening"
+}
+

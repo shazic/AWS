@@ -116,6 +116,7 @@ resource "aws_route_table_association" "db_private" {
     route_table_id = "${aws_default_route_table.private.id}"
 }
 
+# DB Subnet group
 resource "aws_db_subnet_group" "default" {
     name = "terraform-dbsg"
     description = "Subnet group for project ${var.project_name}"
@@ -127,6 +128,8 @@ resource "aws_db_subnet_group" "default" {
     }
 }
 
+# Security Groups
+# 1 - Security group for the bastion host in public subnet
 resource "aws_security_group" "bastion_host" {
     name = "bastion_host_sg"
     description = "Allow ingress from specific IP addresses"
@@ -150,6 +153,98 @@ resource "aws_security_group" "bastion_host" {
 
     tags {
         Name = "${var.project_name}-bastion-host-SG"
+        Project = "${var.project_name}"
+    }
+}
+# 2 - Security group for accepting web traffic
+resource "aws_security_group" "open_internet" {
+    name = "web_traffic_ingress"
+    description = "web traffic"
+    vpc_id = "${aws_vpc.this.id}"
+
+    ingress {
+        description = "Allow all HTTP traffic from open internet"
+        from_port = "80"
+        to_port = "80"
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    ingress {
+        description = "Allow all HTTPS traffic from open internet"
+        from_port = "443"
+        to_port = "443"
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress {
+        description = "Allow traffic out from all ports on all protocols to anywhere"
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags {
+        Name = "${var.project_name}-web-SG"
+        Project = "${var.project_name}"
+    }
+}
+# 3 - Security group for the application layer in private subnet
+resource "aws_security_group" "application_server" {
+    name = "app_server_sg"
+    description = "Allow ingress from the load balancer only"
+    vpc_id = "${aws_vpc.this.id}"
+
+    ingress {
+        description = "Allow ingress from the load balancer only"
+        from_port = "80"
+        to_port = "80"
+        protocol = "tcp"
+        security_groups = [ "${aws_security_group.open_internet.id}" ]
+    }
+    ingress {
+        description = "Allow secure ingress from the load balancer only"
+        from_port = "443"
+        to_port = "443"
+        protocol = "tcp"
+        security_groups = [ "${aws_security_group.open_internet.id}" ]
+    }
+    egress {
+        description = "Allow traffic out from all ports on all protocols to anywhere"
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags {
+        Name = "${var.project_name}-Application-SG"
+        Project = "${var.project_name}"
+    }
+}
+# 4 - DB security group 
+resource "aws_security_group" "db" {
+    name = "db_sg"
+    description = "Allow ingress from the application server only"
+    vpc_id = "${aws_vpc.this.id}"
+
+    ingress {
+        description = "Allow ingress from the application server only"
+        from_port = "${var.db_port}"
+        to_port = "${var.db_port}"
+        protocol = "tcp"
+        security_groups = [ "${aws_security_group.application_server.id}" ]
+    }
+    egress {
+        description = "Allow traffic out from all ports on all protocols to anywhere"
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags {
+        Name = "${var.project_name}-DB-SG"
         Project = "${var.project_name}"
     }
 }

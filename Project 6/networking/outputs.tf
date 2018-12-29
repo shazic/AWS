@@ -100,3 +100,12 @@ output "vpc_private_route_table_id" {
 output "bastion_host_security_group_id" {
     value = "${aws_security_group.bastion_host.id}"
 }
+output "open_internet_security_group_id" {
+    value = "${aws_security_group.open_internet.id}"
+}
+output "app_server_security_group_id" {
+    value = "${aws_security_group.application_server.id}"
+}
+output "db_security_group_id" {
+    value = "${aws_security_group.db.id}"
+}

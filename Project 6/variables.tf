@@ -36,3 +36,7 @@ variable "allowed_ips" {
     description = "IPs allowed to access the bastion host"
     type = "list"
 }
+
+variable "db_port" {
+    description = "Port on which the database is listening"
+}

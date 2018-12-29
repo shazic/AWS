@@ -1,6 +1,5 @@
 #####################################################################################################
-### networking/outputs.tf
-### outputs from the network layer
+### root/outputs.tf
 #####################################################################################################
 
 ##############################
@@ -63,4 +62,13 @@ output "vpc_private_route_table_id" {
 # Security Groups
 output "bastion_host_security_group_id" {
     value = "${module.network.bastion_host_security_group_id}"
+}
+output "open_internet_security_group_id" {
+    value = "${module.network.open_internet_security_group_id}"
+}
+output "app_server_security_group_id" {
+    value = "${module.network.app_server_security_group_id}"
+}
+output "db_security_group_id" {
+    value = "${module.network.db_security_group_id}"
 }
