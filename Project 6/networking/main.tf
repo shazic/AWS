@@ -126,3 +126,30 @@ resource "aws_db_subnet_group" "default" {
         Project = "${var.project_name}"
     }
 }
+
+resource "aws_security_group" "bastion_host" {
+    name = "bastion_host_sg"
+    description = "Allow ingress from specific IP addresses"
+    vpc_id = "${aws_vpc.this.id}"
+
+    ingress {
+        description = "Allow SSH traffic from specific IP addresses"
+        from_port = "22"
+        to_port = "22"
+        protocol = "tcp"
+        cidr_blocks = ["${var.allowed_ips}"]
+    }
+
+    egress {
+        description = "Allow traffic out from all ports on all protocols to anywhere"
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags {
+        Name = "${var.project_name}-bastion-host-SG"
+        Project = "${var.project_name}"
+    }
+}

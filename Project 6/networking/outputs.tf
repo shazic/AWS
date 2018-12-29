@@ -40,6 +40,13 @@ output "vpc_owner_id" {
   value = "${aws_vpc.this.owner_id}"
 }
 
+###############
+# IGW
+###############
+output "internet_gateway_id" {
+  value = "${aws_internet_gateway.this.id}"
+}
+
 ##############################
 # Public Subnets
 ##############################

@@ -31,3 +31,8 @@ variable "no_of_azs" {
     description = "Number of AZs to launch instances in. Make sure that the region supports these many AZs."
     default = 2
 }
+
+variable "allowed_ips" {
+    description = "IPs allowed to access the bastion host"
+    type = "list"
+}

@@ -30,3 +30,8 @@ variable "no_of_azs" {
     description = "Number of AZs to launch instances in"
 }
 
+variable "allowed_ips" {
+    description = "IPs allowed to access the bastion host"
+    type = "list"
+}
+
