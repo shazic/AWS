@@ -68,13 +68,16 @@ output "private_subnet_cidr_blocks" {
 }
 
 ##############################
-# DB Subnets
+# DB Subnets and Subnet Group
 ##############################
 output "db_private_subnet_ids" {
   value = "${aws_subnet.db_private.*.id}"
 }
 output "db_private_subnet_cidr_blocks" {
   value = "${aws_subnet.db_private.*.cidr_block}"
+}
+output "db_subnet_group_id" {
+  value = "${aws_db_subnet_group.default.id}"
 }
 
 ####################
@@ -89,4 +92,11 @@ output "vpc_public_route_table_id" {
 ######################
 output "vpc_private_route_table_id" {
   value = "${aws_default_route_table.private.id}"
+}
+
+######################
+# Security Groups
+######################
+output "bastion_host_security_group_id" {
+    value = "${aws_security_group.bastion_host.id}"
 }
