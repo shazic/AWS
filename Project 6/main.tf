@@ -17,3 +17,14 @@ module "network" {
   allowed_ips = "${var.allowed_ips}"
   db_port = "${var.db_port}"
 }
+
+module "compute" {
+  source = "./compute"
+  project_name = "${var.project_name}"
+  region = "${var.region}"
+  no_of_azs = "${var.no_of_azs}"
+  bastion_host_ami_ids = "${var.bastion_host_ami_ids}"
+  bastion_host_instance_type = "${var.bastion_host_instance_type}"
+  public_subnet_ids = "${module.network.public_subnet_ids}"
+  bastion_host_security_group_id = "${module.network.bastion_host_security_group_id}"
+}
