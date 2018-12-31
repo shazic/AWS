@@ -53,6 +53,11 @@ variable "db_port" {
 # Compute Variables
 #############################
 
+variable "no_of_bastion_hosts" {
+    description = "How many bastion hosts are required?"
+    default = "2"
+}
+
 variable "bastion_host_ami_ids" {
     description = "AMI Id of the bastion host"
     type = "map"
@@ -79,5 +84,34 @@ variable "bastion_host_ami_ids" {
 
 variable "bastion_host_instance_type" {
     description = "Size of the bastion host"
+    default = "t2.micro"
+}
+
+variable "application_ami_ids" {
+    description = "AMI Id of the application"
+    type = "map"
+
+    default {
+        "us-east-1"     = "ami-0080e4c5bc078760e"   // N Virginia
+        "us-east-2"     = "ami-0cd3dfa4e37921605"   // Ohio
+        "us-west-1"     = "ami-0ec6517f6edbf8044"   // N California
+        "us-west-2"     = "ami-01e24be29428c15b2"   // Oregon
+        "ap-south-1"    = "ami-0ad42f4f66f6c1cc9"   // Mumbai
+        "ap-northeast-2"= "ami-00dc207f8ba6dc919"   // Seoul
+        "ap-southeast-1"= "ami-05b3bcf7f311194b3"   // Singapore
+        "ap-southeast-2"= "ami-02fd0b06f06d93dfc"   // Sydney
+        "ap-northeast-1"= "ami-00a5245b4816c38e6"   // Tokyo
+        "ca-central-1"  = "ami-07423fb63ea0a0930"   // Canada
+        "eu-central-1"  = "ami-0cfbf4f6db41068ac"   // Frankfurt
+        "eu-west-1"     = "ami-08935252a36e25f85"   // Ireland
+        "eu-west-2"     = "ami-01419b804382064e4"   // London
+        "eu-west-3"     = "ami-0dd7e7ed60da8fb83"   // Paris
+        "eu-north-1"    = "ami-86fe70f8"            // Stockholm
+        "sa-east-1"     = "ami-05145e0b28ad8e0b2"   // Sao Paulo
+    }
+}
+
+variable "application_server_instance_type" {
+    description = "Size of the application server"
     default = "t2.micro"
 }
