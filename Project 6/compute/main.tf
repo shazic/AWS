@@ -72,3 +72,19 @@ resource "aws_lb_listener" "app_http" {
         target_group_arn = "${aws_lb_target_group.app_http.arn}"
     }
 }
+
+resource "aws_launch_configuration" "app" {
+    name = "${var.project_name}-lc"
+    image_id = "${lookup(var.application_ami_ids, var.region)}"
+    instance_type = "${var.application_server_instance_type}"
+    user_data = "${file("user_data.tpl")}"
+    /*  Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
+        If you need to set instance profile, uncomment below line
+     */
+    # iam_instance_profile = "${var.application_instance_profile}"  
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+

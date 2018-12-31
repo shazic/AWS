@@ -25,7 +25,7 @@ module "compute" {
   no_of_azs = "${var.no_of_azs}"
   
   vpc_id = "${module.network.vpc_id}"
-  
+
   public_subnet_ids = "${module.network.public_subnet_ids}"
   private_subnet_ids = "${module.network.private_subnet_ids}"
   
@@ -36,6 +36,7 @@ module "compute" {
   
   application_ami_ids = "${var.application_ami_ids}"
   application_server_instance_type = "${var.application_server_instance_type}"
+  application_instance_profile = "${var.application_instance_profile}"
   
   load_balancer_security_group_id = "${module.network.open_internet_security_group_id}"
 

@@ -57,3 +57,8 @@ variable "application_ami_ids" {
 variable "application_server_instance_type" {
     description = "Size of the application server"
 }
+
+variable "application_instance_profile" {
+    description = "IAM instance profile for the application instances"
+    default = ""
+}

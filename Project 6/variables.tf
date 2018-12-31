@@ -115,3 +115,8 @@ variable "application_server_instance_type" {
     description = "Size of the application server"
     default = "t2.micro"
 }
+
+variable "application_instance_profile" {
+    description = "IAM instance profile for the application instances"
+    default = "default"
+}
