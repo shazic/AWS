@@ -30,7 +30,9 @@ resource "aws_alb" "app" {
     internal = false
     load_balancer_type = "application"
     security_groups = ["${var.load_balancer_security_group_id}"]
-    subnets = ["${var.private_subnet_ids}"]
+    subnets = ["${var.public_subnet_ids}"]
+
+    enable_cross_zone_load_balancing = true
 
     tags {
         Name = "${var.project_name}-ALB"
@@ -77,15 +79,22 @@ resource "aws_launch_template" "app" {
     name = "${var.project_name}-lc"
     image_id = "${lookup(var.application_ami_ids, var.region)}"
     instance_type = "${var.application_server_instance_type}"
-    key_name = "FedoraKeyPair"
+
     user_data = "${base64encode( "${file("user_data.tpl")}" )}"
     vpc_security_group_ids = ["${var.application_security_group_ids}"]
+    
     /*  Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
         If you need to set instance profile, remove # from the below 3 lines.
      */
     # iam_instance_profile {
     #    name = "${var.application_instance_profile}" 
     #} 
+
+    /*  Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
+        If you need to set key-pair for app server, remove # from the below line.
+     */
+    # key_name = "${var.application_server_key_name}"
+    
 
     lifecycle {
         create_before_destroy = true
@@ -109,7 +118,7 @@ resource "aws_autoscaling_group" "app" {
     min_size = "${var.min_application_cluster_size}"
     desired_capacity = "${var.desired_capacity}"
 
-    vpc_zone_identifier = ["${var.private_subnet_ids}"]
+    vpc_zone_identifier = ["${var.public_subnet_ids}"]
     target_group_arns = ["${aws_lb_target_group.app_http.arn}"]
 
     #termination_policies = []

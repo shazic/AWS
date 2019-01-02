@@ -62,7 +62,7 @@ resource "aws_subnet" "public" {
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
     
     tags {
-        Name = "${var.project_name}-Public-Subnet-${count.index}"
+        Name = "${var.project_name}-Public-Subnet-${count.index + 1}"
         Project = "${var.project_name}"
     }
 
@@ -77,7 +77,7 @@ resource "aws_subnet" "private" {
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
     
     tags {
-        Name = "${var.project_name}-Private-Subnet-${count.index}"
+        Name = "${var.project_name}-Private-Subnet-${count.index + 1}"
         Project = "${var.project_name}"
     }
 }
@@ -90,7 +90,7 @@ resource "aws_subnet" "db_private" {
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
     
     tags {
-        Name = "${var.project_name}-DB-Subnet-${count.index}"
+        Name = "${var.project_name}-DB-Subnet-${count.index + 1}"
         Project = "${var.project_name}"
     }
 }
@@ -123,7 +123,7 @@ resource "aws_db_subnet_group" "default" {
     subnet_ids = ["${aws_subnet.db_private.*.id}"]
     
     tags {
-        Name = "${var.project_name}-DB-Subnet-${count.index}"
+        Name = "${var.project_name}-DB-Subnet"
         Project = "${var.project_name}"
     }
 }

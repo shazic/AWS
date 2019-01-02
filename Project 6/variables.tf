@@ -100,7 +100,7 @@ variable "application_ami_ids" {
         "us-east-2"     = "ami-0cd3dfa4e37921605"   // Ohio
         "us-west-1"     = "ami-0ec6517f6edbf8044"   // N California
         "us-west-2"     = "ami-01e24be29428c15b2"   // Oregon
-        "ap-south-1"    = "ami-0c9bc596e4a80ca02"   // Mumbai
+        "ap-south-1"    = "ami-0c9bc596e4a80ca02"   // Mumbai - Bitnami Nginx Server
         "ap-northeast-2"= "ami-00dc207f8ba6dc919"   // Seoul
         "ap-southeast-1"= "ami-05b3bcf7f311194b3"   // Singapore
         "ap-southeast-2"= "ami-02fd0b06f06d93dfc"   // Sydney
@@ -122,6 +122,11 @@ variable "application_server_instance_type" {
 
 variable "application_instance_profile" {
     description = "IAM instance profile for the application instances"
+    default = "default"
+}
+
+variable "application_server_key_name" {
+    description = "A key pair name for the application server"
     default = "default"
 }
 

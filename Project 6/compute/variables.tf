@@ -67,6 +67,10 @@ variable "application_instance_profile" {
     default = ""
 }
 
+variable "application_server_key_name" {
+    description = "A key pair name for the application server"
+}
+
 variable "max_application_cluster_size" {
     description = "Max limit of ec2 instances while scaling the application"
 }
