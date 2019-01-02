@@ -72,3 +72,47 @@ output "app_server_security_group_id" {
 output "db_security_group_id" {
     value = "${module.network.db_security_group_id}"
 }
+
+##############################
+# Compute Components
+##############################
+
+# DNS name of the Application Load Balancer
+output "application_dns" {
+  value = "${module.compute.alb_dns}"
+}
+
+# Bastion Host Public IP address
+output "bastion_host_public_ips" {
+  value = "${module.compute.bastion_host_public_ips}"
+}
+
+# Bastion Host Public DNS
+output "bastion_host_public_dns" {
+  value = "${module.compute.bastion_host_public_dns}"
+}
+
+# Autoscaling Group's ARN
+output "application_asg_arn" {
+  value = "${module.compute.auto_scaling_group_arn}"
+}
+
+# Autoscaling Group's ID
+output "application_asg_id" {
+  value = "${module.compute.auto_scaling_group_id}"
+}
+
+# HTTP Target Group's ID
+output "app_http_target_group_id" {
+  value = "${module.compute.app_http_target_group_id}"
+}
+
+# HTTP Listener id
+output "app_http_listener_id" {
+  value = "${module.compute.app_http_listener_id}"
+}
+
+# Application's Launch Template ID
+output "app_launch_template_id" {
+  value = "${module.compute.app_launch_template_id}"
+}
