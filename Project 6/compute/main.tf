@@ -118,7 +118,7 @@ resource "aws_autoscaling_group" "app" {
     min_size = "${var.min_application_cluster_size}"
     desired_capacity = "${var.desired_capacity}"
 
-    vpc_zone_identifier = ["${var.public_subnet_ids}"]
+    vpc_zone_identifier = ["${var.private_subnet_ids}"]
     target_group_arns = ["${aws_lb_target_group.app_http.arn}"]
 
     #termination_policies = []

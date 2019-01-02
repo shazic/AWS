@@ -30,10 +30,6 @@ output "app_http_target_group_id" {
   value = "${aws_lb_target_group.app_http.id}"
 }
 
-output "app_http_target_group_id" {
-  value = "${aws_lb_target_group.app_http.id}"
-}
-
 output "app_http_listener_id" {
   value = "${aws_lb_listener.app_http.id}"
 }
