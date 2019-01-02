@@ -11,7 +11,7 @@ resource "aws_instance" "bastion_hosts" {
 
     ami = "${lookup(var.bastion_host_ami_ids, var.region)}"
     instance_type = "${var.bastion_host_instance_type}"
-    key_name = ""
+    key_name = "${var.bastion_host_key_name}"
     
     vpc_security_group_ids = [ "${var.bastion_host_security_group_id}" ]
     subnet_id = "${var.public_subnet_ids[count.index]}"
@@ -73,18 +73,57 @@ resource "aws_lb_listener" "app_http" {
     }
 }
 
-resource "aws_launch_configuration" "app" {
+resource "aws_launch_template" "app" {
     name = "${var.project_name}-lc"
     image_id = "${lookup(var.application_ami_ids, var.region)}"
     instance_type = "${var.application_server_instance_type}"
-    user_data = "${file("user_data.tpl")}"
+    key_name = "FedoraKeyPair"
+    user_data = "${base64encode( "${file("user_data.tpl")}" )}"
+    vpc_security_group_ids = ["${var.application_security_group_ids}"]
     /*  Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
-        If you need to set instance profile, uncomment below line
+        If you need to set instance profile, remove # from the below 3 lines.
      */
-    # iam_instance_profile = "${var.application_instance_profile}"  
+    # iam_instance_profile {
+    #    name = "${var.application_instance_profile}" 
+    #} 
 
     lifecycle {
         create_before_destroy = true
     }
+
+    tags {
+        Name = "${var.project_name}-app-server"
+        Project = "${var.project_name}"
+    }
 }
 
+resource "aws_autoscaling_group" "app" {
+    name = "${var.project_name}-asg"
+
+    launch_template {
+        id = "${aws_launch_template.app.id}"
+        version = "$$Latest"
+    }
+
+    max_size = "${var.max_application_cluster_size}"
+    min_size = "${var.min_application_cluster_size}"
+    desired_capacity = "${var.desired_capacity}"
+
+    vpc_zone_identifier = ["${var.private_subnet_ids}"]
+    target_group_arns = ["${aws_lb_target_group.app_http.arn}"]
+
+    #termination_policies = []
+
+    tags = [
+        {
+            key = "Name"
+            value = "${var.project_name}-app-server"
+            propagate_at_launch = true
+        },
+        {
+            key = "Project"
+            value = "${var.project_name}"
+            propagate_at_launch = true
+        }
+    ]
+}

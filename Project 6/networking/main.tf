@@ -209,6 +209,13 @@ resource "aws_security_group" "application_server" {
         protocol = "tcp"
         security_groups = [ "${aws_security_group.open_internet.id}" ]
     }
+    ingress {
+        description = "Allow ingress from the bastion host"
+        from_port = "22"
+        to_port = "22"
+        protocol = "tcp"
+        security_groups = [ "${aws_security_group.bastion_host.id}" ]
+    }
     egress {
         description = "Allow traffic out from all ports on all protocols to anywhere"
         from_port = 0

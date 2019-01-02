@@ -33,11 +33,16 @@ module "compute" {
   bastion_host_ami_ids = "${var.bastion_host_ami_ids}"
   bastion_host_instance_type = "${var.bastion_host_instance_type}"
   bastion_host_security_group_id = "${module.network.bastion_host_security_group_id}"
+  bastion_host_key_name = "${var.bastion_host_key_name}"
   
   application_ami_ids = "${var.application_ami_ids}"
   application_server_instance_type = "${var.application_server_instance_type}"
   application_instance_profile = "${var.application_instance_profile}"
-  
+  max_application_cluster_size = "${var.max_application_cluster_size}"
+  min_application_cluster_size = "${var.min_application_cluster_size}"
+  desired_capacity = "${var.desired_capacity}"
+  application_security_group_ids = "${module.network.app_server_security_group_id}"
+
   load_balancer_security_group_id = "${module.network.open_internet_security_group_id}"
 
 }
