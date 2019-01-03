@@ -134,3 +134,18 @@ output "db_endpoint" {
 output "rds_instance_id" {
   value = "${module.storage.rds_instance_id}"
 }
+
+# S3 bucket id
+output "object_store_id" {
+  value = "${module.storage.object_store_id}"
+}
+
+# S3 bucket ARN
+output "object_store_arn" {
+  value = "${module.storage.object_store_arn}"
+}
+
+# S3 bucket domain name
+output "object_store_domain_name" {
+  value = "${module.storage.object_store_domain_name}"
+}

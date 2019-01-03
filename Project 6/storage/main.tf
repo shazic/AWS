@@ -42,6 +42,15 @@ resource "aws_db_instance" "main" {
     allow_major_version_upgrade = "${var.db_allow_major_version_upgrade}"
     auto_minor_version_upgrade  = "${var.db_allow_minor_version_upgrade}"
 
+    /*
+     * Ideally skip_final_snapshot should be false.
+     * If the final snapshot is desired before deleting the rds instance, then
+     * change skip_final_snapshot to false, and
+     * uncomment final_snapshot_identifier and put a valid value there.
+     */
+    skip_final_snapshot      = true
+    # final_snapshot_identifier = "${var.final_snapshot_identifier}"
+
     tags {
         Name = "${var.project_name}-RDS"
         Project = "${var.project_name}"
