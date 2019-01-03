@@ -96,7 +96,7 @@ variable "application_ami_ids" {
     type = "map"
 
     default {
-        "us-east-1"     = "ami-0080e4c5bc078760e"   // N Virginia
+        "us-east-1"     = "ami-0f894e5eb0982a455"   // N Virginia - Bitnami Nginx Server
         "us-east-2"     = "ami-0cd3dfa4e37921605"   // Ohio
         "us-west-1"     = "ami-0ec6517f6edbf8044"   // N California
         "us-west-2"     = "ami-01e24be29428c15b2"   // Oregon
