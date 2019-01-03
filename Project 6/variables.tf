@@ -213,3 +213,7 @@ variable "db_allow_major_version_upgrade" {
 variable "db_allow_minor_version_upgrade" {
     description = "Indicates that minor version upgrades are allowed (true/false) "
 }
+
+variable "s3_bucket_name" {
+    description = "Bucket name for the object store"
+}

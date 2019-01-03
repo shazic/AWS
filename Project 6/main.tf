@@ -81,4 +81,6 @@ module "storage" {
 
   db_parameter_group_name = "${var.db_parameter_group_name}"
   db_option_group_name = "${var.db_option_group_name}"
+
+  s3_bucket_name = "${var.s3_bucket_name}"
 }

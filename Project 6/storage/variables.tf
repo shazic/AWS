@@ -97,3 +97,6 @@ variable "db_allow_minor_version_upgrade" {
     default = false
 }
 
+variable "s3_bucket_name" {
+    description = "Bucket name for the object store"
+}

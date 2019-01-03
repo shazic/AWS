@@ -44,6 +44,16 @@ resource "aws_db_instance" "main" {
 
     tags {
         Name = "${var.project_name}-RDS"
-         Project = "${var.project_name}"
+        Project = "${var.project_name}"
+    }
+}
+
+resource "aws_s3_bucket" "store" {
+    bucket = "${var.s3_bucket_name}"
+    acl = "private"
+
+    tags {
+        Name = "${var.project_name}-S3"
+        Project = "${var.project_name}"
     }
 }
