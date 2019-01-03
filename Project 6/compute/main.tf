@@ -83,8 +83,9 @@ resource "aws_launch_template" "app" {
     user_data = "${base64encode( "${file("user_data.tpl")}" )}"
     vpc_security_group_ids = ["${var.application_security_group_ids}"]
     
-    /*  Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
-        If you need to set instance profile, remove # from the below 3 lines.
+    /*  
+     * Currently, HCL does not support conditionally omit a parameter (see https://github.com/hashicorp/terraform/issues/14037).
+     * If you need to set instance profile, remove # from the below 3 lines.
      */
     # iam_instance_profile {
     #    name = "${var.application_instance_profile}" 
@@ -120,8 +121,6 @@ resource "aws_autoscaling_group" "app" {
 
     vpc_zone_identifier = ["${var.private_subnet_ids}"]
     target_group_arns = ["${aws_lb_target_group.app_http.arn}"]
-
-    #termination_policies = []
 
     tags = [
         {

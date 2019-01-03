@@ -49,6 +49,10 @@ output "db_subnet_group_id" {
   value = "${module.network.db_subnet_group_id}"
 }
 
+output "db_subnet_group_name" {
+  value = "${module.network.db_subnet_group_name}"
+}
+
 # Public Route Table
 output "vpc_public_route_table_id" {
   value = "${module.network.vpc_public_route_table_id}"
@@ -115,4 +119,18 @@ output "app_http_listener_id" {
 # Application's Launch Template ID
 output "app_launch_template_id" {
   value = "${module.compute.app_launch_template_id}"
+}
+
+##############################
+# Storage Components
+##############################
+
+# DB endpoint
+output "db_endpoint" {
+  value = "${module.storage.db_endpoint}"
+}
+
+# RDS instance Id
+output "rds_instance_id" {
+  value = "${module.storage.rds_instance_id}"
 }

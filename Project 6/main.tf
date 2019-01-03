@@ -39,7 +39,7 @@ module "compute" {
   application_server_instance_type = "${var.application_server_instance_type}"
   application_instance_profile = "${var.application_instance_profile}"
   application_server_key_name = "${var.application_server_key_name}"
-  
+
   max_application_cluster_size = "${var.max_application_cluster_size}"
   min_application_cluster_size = "${var.min_application_cluster_size}"
   desired_capacity = "${var.desired_capacity}"
@@ -47,4 +47,38 @@ module "compute" {
 
   load_balancer_security_group_id = "${module.network.open_internet_security_group_id}"
 
+}
+
+module "storage" {
+  source = "./storage"
+  project_name = "${var.project_name}"
+  region = "${var.region}"
+  
+  multi_az = "${var.multi_az}"
+
+  db_instance_identifier = "${var.db_name}-${var.db_engine}-database"
+  db_storage_in_gb = "${var.db_storage_in_gb}"
+  db_storage_type = "${var.db_storage_type}"
+  db_engine = "${var.db_engine}"
+  db_engine_version = "${var.db_engine_version}"
+  db_server_instance_class = "${var.db_server_instance_class}"
+  db_security_group_ids = ["${module.network.db_security_group_id}"]
+  db_subnet_group_name = "${module.network.db_subnet_group_name}"
+
+  db_parameter_group_name = "${var.db_parameter_group_name}"
+  db_option_group_name = "${var.db_option_group_name}"
+  
+  db_name = "${var.db_name}"
+  db_username = "${var.db_username}"
+  db_password = "${var.db_password}"
+  db_port  = "${var.db_port}"
+
+  backup_retention_period = "${var.backup_retention_period}"
+  db_backup_window = "${var.db_backup_window}"
+  db_maintenance_window = "${var.db_maintenance_window}"
+  db_allow_major_version_upgrade = "${var.db_allow_major_version_upgrade}"
+  db_allow_minor_version_upgrade  = "${var.db_allow_minor_version_upgrade}"
+
+  db_parameter_group_name = "${var.db_parameter_group_name}"
+  db_option_group_name = "${var.db_option_group_name}"
 }
