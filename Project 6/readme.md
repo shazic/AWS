@@ -22,72 +22,71 @@ The Terraform Configuration would deploy the following resources:
 ## Input Parameters
 
 ### Generic
-Project Name
-AWS Region
+Project Name  
+AWS Region  
 Number of AZs in which application servers would be launched (do not exceed the number of AZs of the given region)
 
 ### VPC
-VPC CIDR block range 
-Public Subnet CIDR blocks
-Private Subnet CIDR blocks 
-DB Subnet CIDR blocks
+VPC CIDR block range  
+Public Subnet CIDR blocks  
+Private Subnet CIDR blocks  
+DB Subnet CIDR blocks  
 
 
 ### Application Servers
 AMI Id  
 Instance Size  
-Instance Profile to be used (This also requires uncommenting iam_instance_profile under the module compute/main.tf)
-Key Pair name for the application servers ec2 instances
+Instance Profile to be used (This also requires uncommenting iam_instance_profile under the module compute/main.tf)  
+Key Pair name for the application servers ec2 instances  
 
 ### Auto Scaling
-Maximum cluster size for the application instances
-Minimum cluster size for the application instances
-Desired cluster size for the application instances
+Maximum cluster size for the application instances  
+Minimum cluster size for the application instances  
+Desired cluster size for the application instances  
 
 ### Bastion Hosts
 AMI Id  
 Instance Size  
-Number of Bastion hosts to be deployed. If more than one, then they will be deployed in different AZs
-Key pair name to SSH into the bastion host
+Number of Bastion hosts to be deployed. If more than one, then they will be deployed in different AZs  
+Key pair name to SSH into the bastion host  
 IP CIDR block range from which a user can SSH into the bastion hosts  
 
 ### Database Instance
 Instance Size  
 Storage Class  
-Storage Type 
-Storage size in GB
-Multi-AZ (true or false) 
-Database Port
+Storage Type  
+Storage size in GB  
+Multi-AZ (true or false)  
+Database Port  
 Database Name  
-Database Engine
+Database Engine  
 Database Engine Version number  
 Database Master User  
 Master Password  
-Parameter Group Name (This requires uncommenting parameter_group_name in the module storage/main.tf)
-Option Group Name (also requires uncommenting option_group_name in the module storage/main.tf)
-Backup Retention Period
-DB backup window       
+Parameter Group Name (This requires uncommenting parameter_group_name in the module storage/main.tf)  
+Option Group Name (also requires uncommenting option_group_name in the module storage/main.tf)  
+Backup Retention Period  
+DB backup window  
 DB maintenance window  
-Allow major version upgrade
-Allow minor version upgrade
+Allow major version upgrade  
+Allow minor version upgrade  
 
 ### S3
-Bucket name (must be a unique name)
+Bucket name (must be a unique name)  
 
 ## Outputs
-
-See outputs.tf under the root folder to view all outputs. 
-Here are a few:
+See outputs.tf under the root folder to view all outputs.  
+Here are a few:  
 
 ### Bastion Hosts
-The public IP Address of the Bastion Hosts.
-The public DNS of the Bastion Hosts.
+The public IP Address of the Bastion Hosts.  
+The public DNS of the Bastion Hosts.  
 
 ### Application URL
-The DNS Name of the Application Load Balancer.
+The DNS Name of the Application Load Balancer.  
 
 ### Database Endpoint
-The endpoint to connect to the database in the RDS instance.
+The endpoint to connect to the database in the RDS instance.  
 
 ### S3
-Object store domain name.
+Object store domain name.  
