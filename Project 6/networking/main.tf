@@ -57,7 +57,8 @@ resource "aws_route" "public" {
 resource "aws_subnet" "public" {
   count                   = "${var.no_of_azs}"
   vpc_id                  = "${aws_vpc.this.id}"
-  cidr_block              = "${var.public_subnet_cidr_blocks[count.index]}"
+  # CIDR blocks for public subnets. As many CIDR blocks as there are number of AZs specified by user.
+  cidr_block              = "${cidrsubnet(aws_vpc.this.cidr_block, 8, count.index)}"
   map_public_ip_on_launch = true
   availability_zone       = "${data.aws_availability_zones.available.names[count.index]}"
 
@@ -73,7 +74,9 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count             = "${var.no_of_azs}"
   vpc_id            = "${aws_vpc.this.id}"
-  cidr_block        = "${var.private_subnet_cidr_blocks[count.index]}"
+  # CIDR blocks for private subnets. As many CIDR blocks as there are number of AZs specified by user.
+  # The CIDR block numbers should be shifted by the AZ count, so that they do not overlap with the public subnet numbers.
+  cidr_block        = "${cidrsubnet(aws_vpc.this.cidr_block, 8, count.index + var.no_of_azs)}"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
 
   tags {
@@ -86,7 +89,9 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "db_private" {
   count             = "${var.no_of_azs}"
   vpc_id            = "${aws_vpc.this.id}"
-  cidr_block        = "${var.db_subnet_cidr_blocks[count.index]}"
+  # CIDR blocks for db subnets. As many CIDR blocks as there are number of AZs specified by user.
+  # The CIDR block numbers should be shifted by the (AZ count) x 2, so that they do not overlap with the public or private subnet numbers.
+  cidr_block        = "${cidrsubnet(aws_vpc.this.cidr_block, 8, count.index + 2*var.no_of_azs)}"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
 
   tags {
