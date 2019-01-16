@@ -3,9 +3,6 @@ project_name = "HA-FT-App"
 no_of_azs = "2"
 
 vpc_cidr_block = "10.2.0.0/16"
-public_subnet_cidr_blocks = ["10.2.99.0/24", "10.2.199.0/24"]
-private_subnet_cidr_blocks = ["10.2.59.0/24", "10.2.159.0/24"]
-db_subnet_cidr_blocks = ["10.2.79.0/24", "10.2.179.0/24"]
 allowed_ips = ["0.0.0.0/0"]
 
 no_of_bastion_hosts = "1"
